@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AgriKonbit</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #22c55e; }
+        .status { 
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #dcfce7; color: #166534; }
+        .info { background: #dbeafe; color: #1e40af; }
+        button {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { background: #16a34a; }
+        .test-result {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #22c55e;
+            background: #f0fdf4;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🌾 Test AgriKonbit Dashboard</h1>
+        
+        <div class="status success">
+            ✅ Cette page s'affiche = HTML/CSS fonctionne
+        </div>
+
+        <div class="status info">
+            ℹ️ Backend API: <span id="backend-status">Vérification...</span>
+        </div>
+
+        <div class="status info">
+            ℹ️ Frontend React: <span id="react-status">En attente</span>
+        </div>
+
+        <h2>Tests API</h2>
+        <button onclick="testBackend()">🧪 Tester Backend (3001)</button>
+        <button onclick="testReact()">⚛️ Aller sur React (3000)</button>
+        <button onclick="testLogin()">🔐 Tester Login</button>
+
+        <div id="results"></div>
+
+        <h2>🎯 URLs à Tester</h2>
+        <ul>
+            <li><a href="http://localhost:3001/health" target="_blank">Backend Health Check</a></li>
+            <li><a href="http://localhost:3000" target="_blank">Frontend React (Page d'accueil)</a></li>
+            <li><a href="http://localhost:3000/login" target="_blank">Page de Connexion</a></li>
+            <li><a href="http://localhost:3000/dashboard" target="_blank">Dashboard (après login)</a></li>
+        </ul>
+
+        <h2>📚 Credentials de Test</h2>
+        <div class="test-result">
+            <strong>Email:</strong> farmer1@agrikonbit.com<br>
+            <strong>Password:</strong> password123
+        </div>
+
+        <h2>✅ Checklist</h2>
+        <div class="test-result">
+            1. Backend sur port 3001 → <a href="http://localhost:3001/health" target="_blank">Tester</a><br>
+            2. Frontend sur port 3000 → <a href="http://localhost:3000" target="_blank">Tester</a><br>
+            3. Se connecter → <a href="http://localhost:3000/login" target="_blank">Login</a><br>
+            4. Voir Dashboard → Connectez-vous d'abord !
+        </div>
+    </div>
+
+    <script>
+        async function testBackend() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="test-result">🔄 Test du backend...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('backend-status').textContent = '✅ Fonctionne';
+                    results.innerHTML = `
+                        <div class="test-result">
+                            <strong>✅ Backend OK!</strong><br>
+                            Status: ${data.status}<br>
+                            Timestamp: ${data.timestamp}
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Backend ne répond pas correctement');
+                }
+            } catch (error) {
+                document.getElementById('backend-status').textContent = '❌ Erreur';
+                results.innerHTML = `
+                    <div class="test-result" style="border-color: #ef4444; background: #fee2e2;">
+                        <strong>❌ Erreur Backend</strong><br>
+                        ${error.message}<br>
+                        <em>Assurez-vous que le serveur backend tourne sur port 3001</em>
+                    </div>
+                `;
+            }
+        }
+
+        async function testLogin() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="test-result">🔄 Test de l\'API de connexion...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'farmer1@agrikonbit.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    results.innerHTML = `
+                        <div class="test-result">
+                            <strong>✅ Login API OK!</strong><br>
+                            User: ${data.data.user.full_name}<br>
+                            Role: ${data.data.user.role}<br>
+                            Token: ${data.data.token.substring(0, 30)}...<br>
+                            <em>Vous pouvez maintenant vous connecter sur le frontend!</em>
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <div class="test-result" style="border-color: #f59e0b; background: #fef3c7;">
+                            <strong>⚠️ Login échoué</strong><br>
+                            Message: ${data.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div class="test-result" style="border-color: #ef4444; background: #fee2e2;">
+                        <strong>❌ Erreur</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function testReact() {
+            document.getElementById('react-status').textContent = 'Ouverture...';
+            window.open('http://localhost:3000', '_blank');
+            setTimeout(() => {
+                document.getElementById('react-status').textContent = 'Fenêtre ouverte - Vérifiez l\'autre onglet';
+            }, 500);
+        }
+
+        // Auto-test au chargement
+        window.onload = () => {
+            testBackend();
+        };
+    </script>
+</body>
+</html>

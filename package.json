@@ -1,0 +1,38 @@
+{
+  "name": "agrikonbit",
+  "version": "1.0.0",
+  "description": "Crowdfunding + Marketplace platform for agricultural projects",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "test": "cd server && npm test && cd ../client && npm test",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install && cd ../contracts && npm install",
+    "migrate": "cd server && npm run migrate",
+    "docker:up": "cd docker && docker compose up --build",
+    "docker:down": "cd docker && docker compose down -v",
+    "e2e:install": "npx playwright install --with-deps",
+    "e2e": "npx playwright test"
+  },
+  "keywords": [
+    "agriculture",
+    "crowdfunding",
+    "marketplace",
+    "blockchain",
+    "nft"
+  ],
+  "author": "AgriKonbit Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "dotenv": "^17.2.3",
+    "mysql2": "^3.15.1"
+  }
+}

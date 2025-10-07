@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS delivery_events (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  location VARCHAR(255) NULL,
+  latitude DECIMAL(9,6) NULL,
+  longitude DECIMAL(9,6) NULL,
+  details VARCHAR(255) NULL,
+  occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_delivery_events_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
