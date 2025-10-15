@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from 'react-query';
 import { 
   FiMenu, 
   FiX, 
@@ -24,6 +25,8 @@ const Header = () => {
   const { getTotalItems } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Notifications are accessible inside user dashboards only (bell removed here)
 
   const handleLogout = () => {
     logout();
@@ -54,7 +57,7 @@ const Header = () => {
   const changeLang = (lng) => i18n.changeLanguage(lng);
 
   return (
-    <header className="sticky top-0 z-50 topbar-agri text-white" style={{ backgroundColor: '#22a06b' }}>
+    <header className="sticky top-0 z-50 topbar-agri text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Left: Logo + Nav */}
@@ -99,6 +102,8 @@ const Header = () => {
               <span>·</span>
               <button onClick={() => changeLang('es')} className="hover:text-white">ES</button>
             </div>
+
+            {/* Notifications bell intentionally removed from main header */}
 
             {/* Cart */}
             <Link to="/cart" className="relative p-2 text-white hover:text-white">
@@ -171,13 +176,13 @@ const Header = () => {
               <div className="flex items-center space-x-2">
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="text-white/90 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   {t('nav.login')}
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
+                  className="bg-white text-primary-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-white/90 transition-colors"
                 >
                   {t('nav.register')}
                 </Link>

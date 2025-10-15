@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { api, endpoints } from '../../utils/api';
 import OverviewSection from '../../components/Dashboard/OverviewSection';
@@ -12,7 +13,16 @@ import MessagingSection from '../../components/Dashboard/MessagingSection';
 import ResourcesSection from '../../components/Dashboard/ResourcesSection';
 
 const FarmerDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const { t } = useTranslation();
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'overview');
+
+  // Update activeTab if location state changes
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
 
   // Fetch dashboard statistics
   const { data: stats, isLoading: statsLoading } = useQuery(['farmer-stats'], async () => {
@@ -51,7 +61,7 @@ const FarmerDashboard = () => {
   if (statsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Chargement...</div>
+        <div className="text-lg">{t('common.loading', 'Chargement...')}</div>
       </div>
     );
   }
@@ -63,15 +73,15 @@ const FarmerDashboard = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">🌾 Tableau de Bord Agriculteur</h1>
-              <p className="text-gray-600 mt-1">Gérez vos projets, produits et ventes</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.farmer.title', '🌾 Tableau de Bord Agriculteur')}</h1>
+              <p className="text-gray-600 mt-1">{t('dashboard.farmer.subtitle', 'Gérez vos projets, produits et ventes')}</p>
             </div>
             <div className="flex gap-3">
               <Link to="/farmer/submit-project" className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                ➕ Nouveau Projet
+                {t('dashboard.farmer.newProject', '➕ Nouveau Projet')}
               </Link>
               <Link to="/farmer/add-product" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                🛒 Ajouter Produit
+                {t('dashboard.farmer.addProduct', '🛒 Ajouter Produit')}
               </Link>
             </div>
           </div>
@@ -89,7 +99,7 @@ const FarmerDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                📊 Vue d'ensemble
+                {t('dashboard.farmer.tabs.overview', "📊 Vue d'ensemble")}
               </button>
               <button
                 onClick={() => setActiveTab('projects')}
@@ -99,7 +109,7 @@ const FarmerDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                🌱 Mes Projets
+                {t('dashboard.farmer.tabs.projects', '🌱 Mes Projets')}
               </button>
               <button
                 onClick={() => setActiveTab('marketplace')}
@@ -109,7 +119,7 @@ const FarmerDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                🛍️ Marketplace
+                {t('dashboard.farmer.tabs.marketplace', '🛍️ Marketplace')}
               </button>
               <button
                 onClick={() => setActiveTab('finances')}
@@ -119,7 +129,7 @@ const FarmerDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                💰 Finances
+                {t('dashboard.farmer.tabs.finances', '💰 Finances')}
               </button>
               <button
                 onClick={() => setActiveTab('notifications')}
@@ -129,7 +139,7 @@ const FarmerDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                🔔 Notifications
+                {t('dashboard.farmer.tabs.notifications', '🔔 Notifications')}
                 {notifications && notifications.length > 0 && (
                   <span className="absolute top-2 right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {notifications.length}
@@ -144,7 +154,7 @@ const FarmerDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                💬 Messages
+                {t('dashboard.farmer.tabs.messages', '💬 Messages')}
               </button>
               <button
                 onClick={() => setActiveTab('resources')}
@@ -154,7 +164,7 @@ const FarmerDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                📚 Ressources
+                {t('dashboard.farmer.tabs.resources', '📚 Ressources')}
               </button>
               <button
                 onClick={() => setActiveTab('profile')}
@@ -164,7 +174,7 @@ const FarmerDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                👤 Profil
+                {t('dashboard.farmer.tabs.profile', '👤 Profil')}
               </button>
             </nav>
           </div>

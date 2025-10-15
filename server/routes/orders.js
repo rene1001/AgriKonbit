@@ -471,4 +471,229 @@ router.patch('/:id/status', authenticateToken, [
   }
 });
 
+// ============================================
+// NOUVELLES ROUTES - Suivi de Commandes
+// ============================================
+
+// GET /api/orders/:id/tracking - Suivi détaillé d'une commande
+router.get('/:id/tracking', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Récupérer la commande
+    const [orders] = await query(`
+      SELECT 
+        o.*,
+        u.full_name as customer_name,
+        u.email as customer_email,
+        u.phone as customer_phone
+      FROM orders o
+      JOIN users u ON o.user_id = u.id
+      WHERE o.id = ? AND o.user_id = ?
+    `, [id, req.user.id]);
+    
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ success: false, message: 'Commande non trouvée' });
+    }
+    
+    const order = orders[0];
+    
+    // Récupérer les articles de la commande
+    const items = await query(`
+      SELECT 
+        oi.*,
+        p.name as product_name,
+        p.description as product_description,
+        CAST(p.images AS CHAR) as product_images,
+        u.full_name as farmer_name
+      FROM order_items oi
+      JOIN products p ON oi.product_id = p.id
+      JOIN users u ON p.farmer_id = u.id
+      WHERE oi.order_id = ?
+    `, [id]);
+    
+    // Récupérer l'historique de statut
+    const statusHistory = await query(`
+      SELECT 
+        osh.*,
+        u.full_name as changed_by_name
+      FROM order_status_history osh
+      LEFT JOIN users u ON osh.changed_by = u.id
+      WHERE osh.order_id = ? 
+      ORDER BY osh.created_at ASC
+    `, [id]);
+    
+    res.json({ 
+      success: true, 
+      data: { 
+        order, 
+        items, 
+        statusHistory 
+      } 
+    });
+  } catch (error) {
+    console.error('Get order tracking error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch order tracking' });
+  }
+});
+
+// GET /api/orders/:id/status-history - Historique des statuts uniquement
+router.get('/:id/status-history', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Vérifier que la commande appartient à l'utilisateur
+    const [orders] = await query(
+      'SELECT * FROM orders WHERE id = ? AND user_id = ?', 
+      [id, req.user.id]
+    );
+    
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ success: false, message: 'Commande non trouvée' });
+    }
+    
+    const statusHistory = await query(`
+      SELECT 
+        osh.*,
+        u.full_name as changed_by_name
+      FROM order_status_history osh
+      LEFT JOIN users u ON osh.changed_by = u.id
+      WHERE osh.order_id = ? 
+      ORDER BY osh.created_at ASC
+    `, [id]);
+    
+    res.json({ success: true, data: statusHistory });
+  } catch (error) {
+    console.error('Get status history error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch status history' });
+  }
+});
+
+// POST /api/orders/:id/confirm-delivery - Confirmer la réception de la commande
+router.post('/:id/confirm-delivery', authenticateToken, [
+  body('notes').optional().trim()
+], async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+    
+    await transaction(async (conn) => {
+      // Vérifier que la commande appartient à l'utilisateur
+      const [orders] = await conn.execute(
+        'SELECT * FROM orders WHERE id = ? AND user_id = ?', 
+        [id, req.user.id]
+      );
+      
+      if (!orders || orders.length === 0) {
+        throw new Error('Commande non trouvée');
+      }
+      
+      const order = orders[0];
+      
+      if (order.status !== 'shipped') {
+        throw new Error('Seules les commandes expédiées peuvent être confirmées');
+      }
+      
+      // Mettre à jour le statut de la commande
+      await conn.execute(`
+        UPDATE orders 
+        SET status = 'delivered', 
+            delivery_confirmed_at = NOW(), 
+            delivery_notes = ?,
+            updated_at = NOW()
+        WHERE id = ?
+      `, [notes || null, id]);
+      
+      // Ajouter à l'historique
+      await conn.execute(`
+        INSERT INTO order_status_history (order_id, status, notes, changed_by, created_at)
+        VALUES (?, 'delivered', ?, ?, NOW())
+      `, [id, notes || 'Livraison confirmée par le client', req.user.id]);
+    });
+    
+    res.json({ success: true, message: 'Livraison confirmée avec succès' });
+  } catch (error) {
+    console.error('Confirm delivery error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to confirm delivery' });
+  }
+});
+
+// POST /api/orders/:id/cancel - Annuler une commande (si pas encore expédiée)
+router.post('/:id/cancel', authenticateToken, [
+  body('reason').trim().isLength({ min: 10 }).withMessage('Veuillez fournir une raison pour l\'annulation (minimum 10 caractères)')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
+    }
+
+    const { id } = req.params;
+    const { reason } = req.body;
+    
+    await transaction(async (conn) => {
+      // Vérifier que la commande appartient à l'utilisateur
+      const [orders] = await conn.execute(
+        'SELECT * FROM orders WHERE id = ? AND user_id = ?', 
+        [id, req.user.id]
+      );
+      
+      if (!orders || orders.length === 0) {
+        throw new Error('Commande non trouvée');
+      }
+      
+      const order = orders[0];
+      
+      if (['shipped', 'delivered', 'cancelled'].includes(order.status)) {
+        throw new Error('Cette commande ne peut plus être annulée');
+      }
+      
+      // Mettre à jour le statut
+      await conn.execute(`
+        UPDATE orders 
+        SET status = 'cancelled', updated_at = NOW()
+        WHERE id = ?
+      `, [id]);
+      
+      // Ajouter à l'historique
+      await conn.execute(`
+        INSERT INTO order_status_history (order_id, status, notes, changed_by, created_at)
+        VALUES (?, 'cancelled', ?, ?, NOW())
+      `, [id, `Annulée par le client: ${reason}`, req.user.id]);
+      
+      // Rembourser si payé avec GYT wallet
+      if (order.payment_method === 'gyt_wallet' && order.status === 'paid') {
+        await conn.execute(`
+          UPDATE user_wallets 
+          SET gyt_balance = gyt_balance + ?, updated_at = NOW()
+          WHERE user_id = ?
+        `, [order.total_gyt, req.user.id]);
+        
+        await conn.execute(`
+          INSERT INTO transactions (user_id, type, amount_gyt, status, description, reference_type, reference_id)
+          VALUES (?, 'refund', ?, 'completed', ?, 'order', ?)
+        `, [req.user.id, order.total_gyt, `Remboursement commande #${order.order_number}`, id]);
+      }
+      
+      // Restaurer le stock des produits
+      const [items] = await conn.execute(
+        'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
+        [id]
+      );
+      
+      for (const item of items) {
+        await conn.execute(
+          'UPDATE products SET stock = stock + ? WHERE id = ?',
+          [item.quantity, item.product_id]
+        );
+      }
+    });
+    
+    res.json({ success: true, message: 'Commande annulée avec succès' });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to cancel order' });
+  }
+});
+
 module.exports = router;

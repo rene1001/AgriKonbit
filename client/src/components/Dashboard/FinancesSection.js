@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { api, endpoints } from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -13,6 +14,7 @@ const FinancesSection = ({ stats }) => {
   const [depositAmount, setDepositAmount] = useState('100');
   
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   // Fetch transactions
   const { data: transactionsData } = useQuery(['farmer-transactions'], async () => {
@@ -44,7 +46,7 @@ const FinancesSection = ({ stats }) => {
         setWithdrawAmount('');
         setWithdrawDestination('');
         setWithdrawNotes('');
-        toast.success('Demande de retrait soumise avec succès !');
+        toast.success(t('dashboard.finances.transactions.title')); // keep success toast generic for now
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Erreur lors du retrait');
@@ -55,11 +57,11 @@ const FinancesSection = ({ stats }) => {
   const handleWithdraw = (e) => {
     e.preventDefault();
     if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
-      toast.error('Veuillez entrer un montant valide');
+      toast.error(t('dashboard.finances.modal.amount'));
       return;
     }
     if (!withdrawDestination) {
-      toast.error('Veuillez entrer une destination de retrait');
+      toast.error(t('dashboard.finances.modal.destination'));
       return;
     }
 
@@ -75,7 +77,7 @@ const FinancesSection = ({ stats }) => {
   const afterDeposit = async (amount) => {
     await queryClient.invalidateQueries(['farmer-stats']);
     await queryClient.invalidateQueries(['farmer-transactions']);
-    toast.success(`Dépôt de ${amount} GYT effectué`);
+    toast.success(`${t('dashboard.finances.deposit.title')} ✓`);
   };
 
   const handleStripeDeposit = async () => {
@@ -96,7 +98,7 @@ const FinancesSection = ({ stats }) => {
         await afterDeposit(amount);
       }
     } catch (e) {
-      toast.error('Échec du dépôt Stripe');
+      toast.error('Stripe error');
     }
   };
 
@@ -118,7 +120,7 @@ const FinancesSection = ({ stats }) => {
         await afterDeposit(amount);
       }
     } catch (e) {
-      toast.error('Échec du dépôt PayPal');
+      toast.error('PayPal error');
     }
   };
 
@@ -135,7 +137,7 @@ const FinancesSection = ({ stats }) => {
         await afterDeposit(amount);
       }
     } catch (e) {
-      toast.error('Échec du dépôt MetaMask');
+      toast.error('MetaMask error');
     }
   };
 
@@ -145,35 +147,35 @@ const FinancesSection = ({ stats }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium opacity-90">Solde Disponible</span>
+            <span className="text-sm font-medium opacity-90">{t('dashboard.finances.wallet.available')}</span>
             <span className="text-3xl">💰</span>
           </div>
           <p className="text-4xl font-bold mb-1">
             {parseFloat(stats?.wallet?.gyt_balance || 0).toFixed(2)}
           </p>
-          <p className="text-sm opacity-75">GYT</p>
+          <p className="text-sm opacity-75">{t('dashboard.finances.wallet.unit')}</p>
         </div>
 
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium opacity-90">Total Gagné</span>
+            <span className="text-sm font-medium opacity-90">{t('dashboard.finances.wallet.earned')}</span>
             <span className="text-3xl">📈</span>
           </div>
           <p className="text-4xl font-bold mb-1">
             {parseFloat(stats?.wallet?.total_earned_gyt || 0).toFixed(2)}
           </p>
-          <p className="text-sm opacity-75">GYT</p>
+          <p className="text-sm opacity-75">DOLLAR</p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium opacity-90">Total Retiré</span>
+            <span className="text-sm font-medium opacity-90">{t('dashboard.finances.wallet.withdrawn')}</span>
             <span className="text-3xl">💸</span>
           </div>
           <p className="text-4xl font-bold mb-1">
             {parseFloat(stats?.wallet?.total_withdrawn_gyt || 0).toFixed(2)}
           </p>
-          <p className="text-sm opacity-75">GYT</p>
+          <p className="text-sm opacity-75">DOLLAR</p>
         </div>
       </div>
 
@@ -182,15 +184,13 @@ const FinancesSection = ({ stats }) => {
         {/* Deposit Section */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">💰 Déposer des GYT</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Achetez des GYT pour vos achats ou investissements
-            </p>
+            <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.finances.deposit.title')}</h3>
+            <p className="text-sm text-gray-600 mt-1">{t('dashboard.finances.deposit.desc')}</p>
           </div>
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Montant (USD → GYT)
+                {t('dashboard.finances.deposit.amountLabel')}
               </label>
               <input
                 type="number"
@@ -201,7 +201,7 @@ const FinancesSection = ({ stats }) => {
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
               />
-              <p className="text-xs text-gray-500 mt-1">Taux: 1 USD = 1 GYT</p>
+              <p className="text-xs text-gray-500 mt-1">{t('dashboard.finances.deposit.rate')}</p>
             </div>
             <div className="flex gap-2">
               <button 
@@ -209,21 +209,21 @@ const FinancesSection = ({ stats }) => {
                 onClick={handleStripeDeposit}
                 disabled={!depositAmount || parseFloat(depositAmount) <= 0}
               >
-                Stripe
+                {t('dashboard.finances.deposit.stripe')}
               </button>
               <button 
                 className="flex-1 px-3 py-2 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 transition"
                 onClick={handlePaypalDeposit}
                 disabled={!depositAmount || parseFloat(depositAmount) <= 0}
               >
-                PayPal
+                {t('dashboard.finances.deposit.paypal')}
               </button>
               <button 
                 className="flex-1 px-3 py-2 bg-orange-600 text-white text-sm rounded hover:bg-orange-700 transition"
                 onClick={handleMetaMaskDeposit}
                 disabled={!depositAmount || parseFloat(depositAmount) <= 0}
               >
-                MetaMask
+                {t('dashboard.finances.deposit.metamask')}
               </button>
             </div>
           </div>
@@ -232,10 +232,8 @@ const FinancesSection = ({ stats }) => {
         {/* Withdraw Section */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">💸 Retirer des Fonds</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Transférez vos gains vers votre compte bancaire ou portefeuille
-            </p>
+            <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.finances.withdraw.title')}</h3>
+            <p className="text-sm text-gray-600 mt-1">{t('dashboard.finances.withdraw.desc')}</p>
           </div>
           <div className="flex items-center justify-center h-20">
             <button
@@ -247,7 +245,7 @@ const FinancesSection = ({ stats }) => {
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              💸 Retirer
+              {t('dashboard.finances.withdraw.cta')}
             </button>
           </div>
         </div>
@@ -256,22 +254,22 @@ const FinancesSection = ({ stats }) => {
       {/* Revenue Sources */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">💵 Sources de Revenus</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.finances.revenue.title')}</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
               <div>
-                <p className="text-sm text-gray-600">Financement de Projets</p>
+                <p className="text-sm text-gray-600">{t('dashboard.finances.revenue.projects')}</p>
                 <p className="text-2xl font-bold text-green-900">
-                  {parseFloat(stats?.projects?.total_funded_gyt || 0).toFixed(2)} GYT
+                  {parseFloat(stats?.projects?.total_funded_gyt || 0).toFixed(2)} DOLLAR
                 </p>
               </div>
               <span className="text-3xl">🌱</span>
             </div>
             <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
               <div>
-                <p className="text-sm text-gray-600">Ventes Marketplace</p>
+                <p className="text-sm text-gray-600">{t('dashboard.finances.revenue.marketplace')}</p>
                 <p className="text-2xl font-bold text-blue-900">
-                  {parseFloat(stats?.orders?.total_revenue_gyt || 0).toFixed(2)} GYT
+                  {parseFloat(stats?.orders?.total_revenue_gyt || 0).toFixed(2)} DOLLAR
                 </p>
               </div>
               <span className="text-3xl">🛒</span>
@@ -280,7 +278,7 @@ const FinancesSection = ({ stats }) => {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 Mes Investisseurs</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.finances.investors.title')}</h3>
           <div className="space-y-3">
             {investorsData?.investors?.slice(0, 5).map((investor) => (
               <div key={investor.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -289,14 +287,14 @@ const FinancesSection = ({ stats }) => {
                   <p className="text-xs text-gray-600">{investor.country}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-green-600">{investor.total_invested_gyt} GYT</p>
-                  <p className="text-xs text-gray-600">{investor.investment_count} investissements</p>
+                  <p className="font-semibold text-green-600">{investor.total_invested_gyt} {t('dashboard.finances.investors.investedUnit')}</p>
+                  <p className="text-xs text-gray-600">{investor.investment_count} {t('dashboard.finances.investors.count')}</p>
                 </div>
               </div>
             ))}
             {(!investorsData?.investors || investorsData.investors.length === 0) && (
               <div className="text-center text-gray-500 py-4">
-                Aucun investisseur pour le moment
+                {t('dashboard.finances.investors.none')}
               </div>
             )}
           </div>
@@ -306,12 +304,12 @@ const FinancesSection = ({ stats }) => {
       {/* Transactions History */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">📊 Historique des Transactions</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.finances.transactions.title')}</h3>
           <div className="flex gap-2">
             <button
               type="button"
               className="px-3 py-2 text-sm rounded bg-gray-100 hover:bg-gray-200"
-              title="Exporter en CSV"
+              title={t('dashboard.finances.transactions.exportCsv')}
               onClick={() => {
                 const rows = (transactionsData?.transactions || []).map(t => ({
                   id: t.id,
@@ -321,24 +319,24 @@ const FinancesSection = ({ stats }) => {
                   status: t.status,
                   created_at: t.created_at
                 }));
-                if (!rows.length) return toast.error('Aucune donnée à exporter');
+                if (!rows.length) return toast.error(t('dashboard.finances.transactions.csvEmpty'));
                 exportToCSV('transactions', rows);
               }}
             >
-              Export CSV
+              {t('dashboard.finances.transactions.exportCsv')}
             </button>
             <button
               type="button"
               className="px-3 py-2 text-sm rounded bg-gray-100 hover:bg-gray-200"
-              title="Imprimer ou sauvegarder en PDF"
+              title={t('dashboard.finances.transactions.exportPdf')}
               onClick={() => {
                 const rows = (transactionsData?.transactions || []);
-                if (!rows.length) return toast.error('Aucune donnée à exporter');
+                if (!rows.length) return toast.error(t('dashboard.finances.transactions.csvEmpty'));
                 const html = `
-                  <h1>Transactions</h1>
+                  <h1>${t('dashboard.finances.transactions.title')}</h1>
                   <table>
                     <thead><tr>
-                      <th>ID</th><th>Type</th><th>Description</th><th>Montant (GYT)</th><th>Statut</th><th>Date</th>
+                      <th>ID</th><th>${t('dashboard.finances.transactions.table.type')}</th><th>${t('dashboard.finances.transactions.table.description')}</th><th>${t('dashboard.finances.transactions.table.amount')} (${t('dashboard.finances.wallet.unit')})</th><th>${t('dashboard.finances.transactions.table.status')}</th><th>${t('dashboard.finances.transactions.table.date')}</th>
                     </tr></thead>
                     <tbody>
                       ${rows.map(t => `
@@ -353,10 +351,10 @@ const FinancesSection = ({ stats }) => {
                       `).join('')}
                     </tbody>
                   </table>`;
-                exportToPrintableHTML('Transactions', html);
+                exportToPrintableHTML(t('dashboard.finances.transactions.title'), html);
               }}
             >
-              Export PDF
+              {t('dashboard.finances.transactions.exportPdf')}
             </button>
           </div>
         </div>
@@ -364,11 +362,11 @@ const FinancesSection = ({ stats }) => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Montant</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('dashboard.finances.transactions.table.type')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('dashboard.finances.transactions.table.description')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('dashboard.finances.transactions.table.amount')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('dashboard.finances.transactions.table.status')}</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('dashboard.finances.transactions.table.date')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -386,7 +384,7 @@ const FinancesSection = ({ stats }) => {
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">{transaction.description}</td>
                   <td className="px-4 py-3 text-sm font-semibold text-gray-900">
-                    {transaction.amount_gyt} GYT
+                    {transaction.amount_gyt} DOLLAR
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -407,21 +405,21 @@ const FinancesSection = ({ stats }) => {
           </table>
           {(!transactionsData?.transactions || transactionsData.transactions.length === 0) && (
             <div className="text-center text-gray-500 py-8">
-              Aucune transaction pour le moment
+              {t('dashboard.finances.transactions.none')}
             </div>
           )}
-        </div>
+      </div>
       </div>
 
       {/* Withdraw Modal */}
       {showWithdrawModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">💸 Retirer des Fonds</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.finances.modal.withdrawTitle')}</h3>
             <form onSubmit={handleWithdraw} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Montant (GYT)
+                  {t('dashboard.finances.modal.amount')}
                 </label>
                 <input
                   type="number"
@@ -435,50 +433,44 @@ const FinancesSection = ({ stats }) => {
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Disponible: {parseFloat(stats?.wallet?.gyt_balance || 0).toFixed(2)} GYT
+                  {t('dashboard.finances.modal.available')}: {parseFloat(stats?.wallet?.gyt_balance || 0).toFixed(2)} {t('dashboard.finances.wallet.unit')}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Méthode de retrait
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.finances.modal.method')}</label>
                 <select
                   value={withdrawMethod}
                   onChange={(e) => setWithdrawMethod(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 >
-                  <option value="bank_transfer">Virement bancaire</option>
-                  <option value="mobile_money">Mobile Money</option>
-                  <option value="crypto_wallet">Portefeuille crypto</option>
+                  <option value="bank_transfer">{t('dashboard.finances.modal.methods.bank')}</option>
+                  <option value="mobile_money">{t('dashboard.finances.modal.methods.mobile')}</option>
+                  <option value="crypto_wallet">{t('dashboard.finances.modal.methods.crypto')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Destination (numéro de compte/wallet)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.finances.modal.destination')}</label>
                 <input
                   type="text"
                   value={withdrawDestination}
                   onChange={(e) => setWithdrawDestination(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Ex: 0x123... ou 12345678"
+                  placeholder="Ex: 0x123... / 12345678"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notes (optionnel)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.finances.modal.notes')}</label>
                 <textarea
                   value={withdrawNotes}
                   onChange={(e) => setWithdrawNotes(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   rows="3"
-                  placeholder="Informations supplémentaires..."
+                  placeholder={t('dashboard.finances.modal.notesPh')}
                 />
               </div>
 
@@ -488,14 +480,14 @@ const FinancesSection = ({ stats }) => {
                   onClick={() => setShowWithdrawModal(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
                 >
-                  Annuler
+                  {t('dashboard.finances.modal.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={withdrawMutation.isLoading}
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:bg-gray-400"
                 >
-                  {withdrawMutation.isLoading ? 'Traitement...' : 'Confirmer'}
+                  {withdrawMutation.isLoading ? t('dashboard.finances.modal.processing') : t('dashboard.finances.modal.confirm')}
                 </button>
               </div>
             </form>

@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       {/* Key Stats */}
@@ -10,12 +12,12 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
         <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Projets Actifs</p>
+              <p className="text-sm text-gray-600">{t('dashboard.overview.stats.projectsActive')}</p>
               <p className="text-3xl font-bold text-gray-900 mt-1">
                 {stats?.projects?.active_projects || 0}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Total: {stats?.projects?.total_projects || 0}
+                {t('dashboard.overview.stats.projectsTotal')}: {stats?.projects?.total_projects || 0}
               </p>
             </div>
             <div className="text-4xl">🌱</div>
@@ -26,12 +28,12 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
         <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Produits en Vente</p>
+              <p className="text-sm text-gray-600">{t('dashboard.overview.stats.productsOnSale')}</p>
               <p className="text-3xl font-bold text-gray-900 mt-1">
                 {stats?.products?.active_products || 0}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Stock: {stats?.products?.total_stock || 0} unités
+                {t('dashboard.overview.stats.stock')}: {stats?.products?.total_stock || 0} {t('dashboard.overview.stats.units')}
               </p>
             </div>
             <div className="text-4xl">🛒</div>
@@ -42,12 +44,12 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
         <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-yellow-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Commandes en Cours</p>
+              <p className="text-sm text-gray-600">{t('dashboard.overview.stats.ordersPending')}</p>
               <p className="text-3xl font-bold text-gray-900 mt-1">
                 {stats?.orders?.pending_orders || 0}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Total: {stats?.orders?.total_orders || 0}
+                {t('dashboard.overview.stats.ordersTotal')}: {stats?.orders?.total_orders || 0}
               </p>
             </div>
             <div className="text-4xl">📦</div>
@@ -58,12 +60,12 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
         <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Solde GYT</p>
+              <p className="text-sm text-gray-600">{t('dashboard.overview.stats.walletBalance')}</p>
               <p className="text-3xl font-bold text-gray-900 mt-1">
                 {parseFloat(stats?.wallet?.gyt_balance || 0).toFixed(2)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Gagné: {parseFloat(stats?.wallet?.total_earned_gyt || 0).toFixed(2)} GYT
+                {t('dashboard.overview.stats.earned')}: {parseFloat(stats?.wallet?.total_earned_gyt || 0).toFixed(2)} DOLLAR
               </p>
             </div>
             <div className="text-4xl">💰</div>
@@ -75,11 +77,11 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-green-800">Financement Total</span>
+            <span className="text-sm font-medium text-green-800">{t('dashboard.overview.funding.totalFunding')}</span>
             <span className="text-2xl">💵</span>
           </div>
           <p className="text-2xl font-bold text-green-900">
-            {parseFloat(stats?.projects?.total_funded_gyt || 0).toFixed(2)} GYT
+            {parseFloat(stats?.projects?.total_funded_gyt || 0).toFixed(2)} DOLLAR
           </p>
           <p className="text-xs text-green-700 mt-1">
             ${parseFloat(stats?.projects?.total_funded_usd || 0).toFixed(2)} USD
@@ -88,24 +90,24 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
 
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-800">Investisseurs</span>
+            <span className="text-sm font-medium text-blue-800">{t('dashboard.overview.funding.investors')}</span>
             <span className="text-2xl">👥</span>
           </div>
           <p className="text-2xl font-bold text-blue-900">
             {stats?.investors?.total_investors || 0}
           </p>
           <p className="text-xs text-blue-700 mt-1">
-            {stats?.investors?.total_investments || 0} investissements
+            {stats?.investors?.total_investments || 0} {t('dashboard.overview.funding.investments')}
           </p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-purple-800">Revenus Marketplace</span>
+            <span className="text-sm font-medium text-purple-800">{t('dashboard.overview.funding.marketplaceRevenue')}</span>
             <span className="text-2xl">💳</span>
           </div>
           <p className="text-2xl font-bold text-purple-900">
-            {parseFloat(stats?.orders?.total_revenue_gyt || 0).toFixed(2)} GYT
+            {parseFloat(stats?.orders?.total_revenue_gyt || 0).toFixed(2)} $
           </p>
           <p className="text-xs text-purple-700 mt-1">
             ${parseFloat(stats?.orders?.total_revenue_usd || 0).toFixed(2)} USD
@@ -118,9 +120,9 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
         {/* Recent Projects */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">📋 Projets Récents</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.overview.recentProjects.title')}</h3>
             <Link to="/farmer/my-projects" className="text-sm text-green-600 hover:text-green-700">
-              Voir tous →
+              {t('dashboard.overview.recentProjects.viewAll')}
             </Link>
           </div>
           <div className="space-y-3">
@@ -130,11 +132,11 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
                   <p className="font-medium text-gray-900">{project.title}</p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-xs text-gray-600">
-                      {project.budget_gyt} GYT
+                      {project.budget_gyt} DOLLAR
                     </span>
                     <span className="text-xs text-gray-400">•</span>
                     <span className="text-xs text-gray-600">
-                      {project.funding_percentage || 0}% financé
+                      {t('dashboard.overview.recentProjects.fundedPct', { pct: project.funding_percentage || 0 })}
                     </span>
                   </div>
                 </div>
@@ -151,7 +153,7 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
             ))}
             {(!myProjects || myProjects.length === 0) && (
               <div className="text-center text-gray-500 py-8">
-                Aucun projet pour le moment
+                {t('dashboard.overview.recentProjects.none')}
               </div>
             )}
           </div>
@@ -160,9 +162,9 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
         {/* Recent Orders */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">📦 Commandes Récentes</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.overview.recentOrders.title')}</h3>
             <Link to="/farmer/orders" className="text-sm text-green-600 hover:text-green-700">
-              Voir toutes →
+              {t('dashboard.overview.recentOrders.viewAll')}
             </Link>
           </div>
           <div className="space-y-3">
@@ -176,7 +178,7 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
                     </span>
                     <span className="text-xs text-gray-400">•</span>
                     <span className="text-xs text-gray-600">
-                      {order.total_gyt} GYT
+                      {order.total_gyt} DOLLAR
                     </span>
                   </div>
                 </div>
@@ -192,7 +194,7 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
             ))}
             {(!recentOrders || recentOrders.length === 0) && (
               <div className="text-center text-gray-500 py-8">
-                Aucune commande pour le moment
+                {t('dashboard.overview.recentOrders.none')}
               </div>
             )}
           </div>
@@ -202,9 +204,9 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
       {/* Products */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">🛍️ Mes Produits</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.overview.products.title')}</h3>
           <Link to="/farmer/my-products" className="text-sm text-green-600 hover:text-green-700">
-            Voir tous →
+            {t('dashboard.overview.products.viewAll')}
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -215,7 +217,7 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
                 <span className={`px-2 py-1 rounded text-xs font-medium ${
                   product.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {product.is_active ? 'Actif' : 'Inactif'}
+                  {product.is_active ? t('dashboard.overview.products.active') : t('dashboard.overview.products.inactive')}
                 </span>
               </div>
               <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
@@ -231,7 +233,7 @@ const OverviewSection = ({ stats, myProjects, myProducts, recentOrders }) => {
           ))}
           {(!myProducts || myProducts.length === 0) && (
             <div className="col-span-3 text-center text-gray-500 py-8">
-              Aucun produit pour le moment
+              {t('dashboard.overview.recentProjects.none')}
             </div>
           )}
         </div>

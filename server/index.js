@@ -29,6 +29,12 @@ const placeholderRoutes = require('./routes/placeholder');
 const walletRoutes = require('./routes/wallet');
 const returnsRoutes = require('./routes/returns');
 const reportsRoutes = require('./routes/reports');
+const treasuryRoutes = require('./routes/treasury');
+
+const http = require('http');
+const { Server } = require('socket.io');
+const { initializeSocket } = require('./config/socket');
+const { setIO } = require('./config/io');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -74,6 +80,18 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// Cache middleware pour API (GET seulement)
+app.use('/api', (req, res, next) => {
+  if (req.method === 'GET') {
+    // Cache court pour données read-only
+    res.setHeader('Cache-Control', 'public, max-age=60'); // 1 minute
+  } else {
+    // Pas de cache pour POST/PUT/DELETE
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+  next();
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -102,14 +120,49 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/returns', returnsRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/treasury', treasuryRoutes);
+app.use('/api/settings', require('./routes/settings'));
 
-// Serve React static files
-app.use(express.static(path.join(__dirname, '../client/build')));
+// Serve static files with optimized caching
+if (process.env.NODE_ENV === 'production') {
+  // Assets avec hash dans le nom (JS, CSS) - cache long terme
+  app.use('/static', express.static(path.join(__dirname, '../client/build/static'), {
+    maxAge: '1y', // 1 an
+    immutable: true,
+    etag: true,
+    setHeaders: (res, filePath) => {
+      // Assets avec hash sont immuables
+      if (filePath.match(/\.(js|css|woff2?|ttf|eot)$/)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }
+  }));
+  
+  // Autres fichiers statiques - cache court
+  app.use(express.static(path.join(__dirname, '../client/build'), {
+    maxAge: 0,
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+      // HTML pas de cache (pour avoir toujours la dernière version)
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
+    }
+  }));
+  
+  // Catch-all: serve React index.html for all non-API routes (production only)
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  });
+}
 
-// Serve uploaded files (images/documents)
+// Serve uploaded files (images/documents) avec cache
 app.use('/uploads', (req, res, next) => {
   // Allow embedding uploads from different origins (e.g., client on :3000)
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  // Cache images 1 semaine
+  res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 jours
   next();
 }, express.static(path.join(__dirname, '../uploads')));
 
@@ -119,11 +172,6 @@ if (process.env.NODE_ENV === 'development') {
   const swaggerSpec = require('./config/swagger');
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }
-
-// Catch-all: serve React index.html for all non-API routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build/index.html'));
-});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -140,8 +188,28 @@ app.use((err, req, res, next) => {
 db.connect()
   .then(() => {
     console.log('✅ Database connected successfully');
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+    const server = http.createServer(app);
+    const io = new Server(server, {
+      cors: {
+        origin: [
+          process.env.FRONTEND_URL || 'http://localhost:3000',
+          'http://localhost:3001',
+          'http://127.0.0.1:3000',
+          'http://127.0.0.1:3001'
+        ],
+        credentials: true,
+        methods: ['GET', 'POST']
+      },
+      transports: ['polling', 'websocket'],
+      allowEIO3: true,
+      pingTimeout: 60000,
+      pingInterval: 25000
+    });
+    initializeSocket(io);
+    setIO(io);
+
+    server.listen(PORT, () => {
+      console.log(`🚀 Server (HTTP + Socket.IO) running on port ${PORT}`);
       console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
     });
   })

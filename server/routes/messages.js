@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { query, transaction } = require('../config/database');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const router = express.Router();
+const { getIO } = require('../config/io');
 
 // Get conversations for the authenticated user
 router.get('/conversations', authenticateToken, async (req, res) => {
@@ -28,13 +29,16 @@ router.get('/conversations', authenticateToken, async (req, res) => {
         (SELECT COUNT(*) FROM messages m 
          WHERE m.conversation_id = c.id 
          AND m.receiver_id = ? 
-         AND m.is_read = false) as unread_count,
+         AND m.is_read = false
+         AND (m.is_deleted IS NULL OR m.is_deleted = false)) as unread_count,
         (SELECT content FROM messages m 
          WHERE m.conversation_id = c.id 
+         AND (m.is_deleted IS NULL OR m.is_deleted = false)
          ORDER BY m.created_at DESC 
          LIMIT 1) as last_message,
         (SELECT created_at FROM messages m 
          WHERE m.conversation_id = c.id 
+         AND (m.is_deleted IS NULL OR m.is_deleted = false)
          ORDER BY m.created_at DESC 
          LIMIT 1) as last_message_at
       FROM conversations c
@@ -77,7 +81,7 @@ router.get('/conversations/:id/messages', authenticateToken, async (req, res) =>
       });
     }
 
-    // Get messages
+    // Get messages (exclude soft-deleted)
     const messages = await query(`
       SELECT 
         m.*,
@@ -85,7 +89,7 @@ router.get('/conversations/:id/messages', authenticateToken, async (req, res) =>
         u.role as sender_role
       FROM messages m
       JOIN users u ON m.sender_id = u.id
-      WHERE m.conversation_id = ?
+      WHERE m.conversation_id = ? AND (m.is_deleted IS NULL OR m.is_deleted = false)
       ORDER BY m.created_at DESC
       LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}
     `, [id]);
@@ -94,6 +98,17 @@ router.get('/conversations/:id/messages', authenticateToken, async (req, res) =>
     await query(
       'UPDATE messages SET is_read = true WHERE conversation_id = ? AND receiver_id = ?',
       [id, userId]
+    );
+
+    // Mark related message notifications as read using JSON data (conversation_id)
+    await query(
+      `UPDATE notifications 
+       SET is_read = true 
+       WHERE user_id = ? 
+       AND type = 'new_message' 
+       AND is_read = false
+       AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.conversation_id')) = ?`,
+      [userId, String(id)]
     );
 
     res.json({
@@ -167,13 +182,46 @@ router.post('/send', authenticateToken, [
 
     // Create notification for receiver
     await query(`
-      INSERT INTO notifications (user_id, type, title, message, created_at)
-      VALUES (?, 'new_message', ?, ?, NOW())
+      INSERT INTO notifications (user_id, type, title, message, data, created_at)
+      VALUES (?, 'new_message', ?, ?, ?, NOW())
     `, [
       receiver_id,
       subject || 'Nouveau message',
-      `${req.user.full_name} vous a envoyé un message`
+      `${req.user.full_name} vous a envoyé un message`,
+      JSON.stringify({ 
+        conversation_id: conversation.id, 
+        sender_id: senderId,
+        sender_name: req.user.full_name 
+      })
     ]);
+
+    // Emit socket events to receiver (message:new and unread_count)
+    try {
+      const io = getIO();
+      if (io) {
+        io.to(`user_${receiver_id}`).emit('message:new', {
+          conversation_id: conversation.id,
+          message: {
+            id: messageResult.insertId,
+            conversation_id: conversation.id,
+            sender_id: senderId,
+            receiver_id,
+            content,
+            subject: subject || null,
+            created_at: new Date().toISOString()
+          }
+        });
+
+        const [r] = await query(
+          'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = false',
+          [receiver_id]
+        );
+        io.to(`user_${receiver_id}`).emit('unread_count', { count: r.count });
+
+        // Optionally notify sender to refresh conversations list
+        io.to(`user_${senderId}`).emit('conversation:update', { conversation_id: conversation.id });
+      }
+    } catch (_) {}
 
     res.json({
       success: true,
@@ -220,6 +268,40 @@ router.get('/farmer/investors-list', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch investors'
+    });
+  }
+});
+
+// Get investor's farmers (for investor to message)
+router.get('/investor/farmers-list', authenticateToken, async (req, res) => {
+  try {
+    const farmers = await query(`
+      SELECT DISTINCT
+        u.id,
+        u.full_name,
+        u.email,
+        u.role,
+        p.title as project_title,
+        p.id as project_id,
+        COUNT(DISTINCT i.id) as investments_count,
+        SUM(i.amount_gyt) as total_invested_gyt
+      FROM users u
+      JOIN projects p ON u.id = p.farmer_id
+      JOIN investments i ON p.id = i.project_id
+      WHERE i.investor_id = ? AND i.status = 'completed'
+      GROUP BY u.id, p.id, p.title
+      ORDER BY p.created_at DESC
+    `, [req.user.id]);
+
+    res.json({
+      success: true,
+      data: { farmers }
+    });
+  } catch (error) {
+    console.error('Get farmers list error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch farmers'
     });
   }
 });

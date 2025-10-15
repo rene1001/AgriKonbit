@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { api, endpoints } from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../contexts/AuthContext';
+import { useSocket } from '../../contexts/SocketContext';
 
 const MessagingSection = () => {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const userRole = user?.role;
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [showNewMessage, setShowNewMessage] = useState(false);
   const [newMessageRecipient, setNewMessageRecipient] = useState('');
@@ -12,6 +18,7 @@ const MessagingSection = () => {
   const [messageContent, setMessageContent] = useState('');
   
   const queryClient = useQueryClient();
+  const { socket } = useSocket();
 
   // Fetch conversations
   const { data: conversationsData } = useQuery(['conversations'], async () => {
@@ -30,11 +37,48 @@ const MessagingSection = () => {
     { enabled: !!selectedConversation }
   );
 
-  // Fetch investors list
-  const { data: investorsData } = useQuery(['investors-list'], async () => {
-    const res = await api.get(endpoints.messages.investorsList);
-    return res.data.data;
-  });
+  // Real-time updates: refresh conversations list and messages when socket events arrive
+  useEffect(() => {
+    if (!socket) return;
+
+    const onMessageNew = (payload) => {
+      queryClient.invalidateQueries(['conversations']);
+      if (payload?.conversation_id && payload.conversation_id === selectedConversation) {
+        queryClient.invalidateQueries(['conversation-messages', selectedConversation]);
+      }
+    };
+
+    const onConversationUpdate = (payload) => {
+      queryClient.invalidateQueries(['conversations']);
+      if (payload?.conversation_id && payload.conversation_id === selectedConversation) {
+        queryClient.invalidateQueries(['conversation-messages', selectedConversation]);
+      }
+    };
+
+    socket.on('message:new', onMessageNew);
+    socket.on('conversation:update', onConversationUpdate);
+
+    return () => {
+      socket.off('message:new', onMessageNew);
+      socket.off('conversation:update', onConversationUpdate);
+    };
+  }, [socket, queryClient, selectedConversation]);
+
+  // Fetch contacts list (investors for farmers, farmers for investors)
+  const { data: contactsData } = useQuery(
+    ['contacts-list', userRole],
+    async () => {
+      if (userRole === 'farmer') {
+        const res = await api.get(endpoints.messages.investorsList);
+        return res.data.data;
+      } else if (userRole === 'investor') {
+        const res = await api.get(endpoints.messages.farmersList);
+        return res.data.data;
+      }
+      return null;
+    },
+    { enabled: !!userRole }
+  );
 
   // Fetch admins list
   const { data: adminsData } = useQuery(['admins-list'], async () => {
@@ -56,10 +100,28 @@ const MessagingSection = () => {
         setNewMessageContent('');
         setNewMessageSubject('');
         setShowNewMessage(false);
-        toast.success('Message envoyé avec succès !');
+        toast.success(t('messages.sendSuccess', 'Message envoyé avec succès !'));
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || "Erreur lors de l'envoi du message");
+        toast.error(error.response?.data?.message || t('messages.sendError', "Erreur lors de l'envoi du message"));
+      }
+    }
+  );
+
+  // Delete message mutation
+  const deleteMessageMutation = useMutation(
+    async (messageId) => {
+      const res = await api.delete(endpoints.messages.deleteMessage(messageId));
+      return res.data;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['conversations']);
+        queryClient.invalidateQueries(['conversation-messages']);
+        toast.success(t('messages.deleteSuccess', 'Message supprimé avec succès !'));
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || t('messages.deleteError', "Erreur lors de la suppression du message"));
       }
     }
   );
@@ -80,7 +142,7 @@ const MessagingSection = () => {
   const handleNewMessage = (e) => {
     e.preventDefault();
     if (!newMessageRecipient || !newMessageContent.trim()) {
-      toast.error('Veuillez remplir tous les champs requis');
+      toast.error(t('common.fillRequired', 'Veuillez remplir tous les champs requis'));
       return;
     }
 
@@ -99,11 +161,11 @@ const MessagingSection = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'À l\'instant';
-    if (diffMins < 60) return `Il y a ${diffMins} min`;
-    if (diffHours < 24) return `Il y a ${diffHours}h`;
-    if (diffDays < 7) return `Il y a ${diffDays}j`;
-    return date.toLocaleDateString('fr-FR');
+    if (diffMins < 1) return t('messages.time.now', "À l'instant");
+    if (diffMins < 60) return t('messages.time.minsAgo', 'Il y a {{count}} min', { count: diffMins });
+    if (diffHours < 24) return t('messages.time.hoursAgo', 'Il y a {{count}}h', { count: diffHours });
+    if (diffDays < 7) return t('messages.time.daysAgo', 'Il y a {{count}}j', { count: diffDays });
+    return date.toLocaleDateString();
   };
 
   return (
@@ -112,12 +174,12 @@ const MessagingSection = () => {
       <div className="w-1/3 bg-white rounded-lg shadow-sm flex flex-col">
         <div className="p-4 border-b">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">💬 Messages</h2>
+            <h2 className="text-lg font-bold text-gray-900">{t('dashboard.messaging.header')}</h2>
             <button
               onClick={() => setShowNewMessage(true)}
               className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition"
             >
-              ✉️ Nouveau
+              {t('dashboard.messaging.new')}
             </button>
           </div>
         </div>
@@ -168,12 +230,12 @@ const MessagingSection = () => {
           {(!conversationsData?.conversations || conversationsData.conversations.length === 0) && (
             <div className="p-8 text-center text-gray-500">
               <p className="text-lg mb-2">📭</p>
-              <p>Aucune conversation</p>
+              <p>{t('dashboard.messaging.none')}</p>
               <button
                 onClick={() => setShowNewMessage(true)}
                 className="mt-4 text-green-600 hover:underline text-sm"
               >
-                Envoyer votre premier message
+                {t('dashboard.messaging.new')}
               </button>
             </div>
           )}
@@ -205,13 +267,26 @@ const MessagingSection = () => {
                 return (
                   <div
                     key={message.id}
-                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
                   >
                     <div className={`max-w-[70%] ${
                       isOwn
                         ? 'bg-green-600 text-white'
                         : 'bg-gray-100 text-gray-900'
-                    } rounded-lg p-3`}>
+                    } rounded-lg p-3 relative`}>
+                      {isOwn && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm(t('messages.confirmDelete', 'Voulez-vous vraiment supprimer ce message ?'))) {
+                              deleteMessageMutation.mutate(message.id);
+                            }
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          title={t('messages.delete', 'Supprimer')}
+                        >
+                          ×
+                        </button>
+                      )}
                       {message.subject && (
                         <p className={`font-semibold mb-1 text-sm ${
                           isOwn ? 'text-green-50' : 'text-gray-700'
@@ -238,7 +313,7 @@ const MessagingSection = () => {
                   type="text"
                   value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
-                  placeholder="Tapez votre message..."
+                  placeholder={t('messages.input.placeholder', 'Tapez votre message...')}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
                 <button
@@ -246,7 +321,7 @@ const MessagingSection = () => {
                   disabled={!messageContent.trim() || sendMessageMutation.isLoading}
                   className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  📤 Envoyer
+                  {t('messages.input.send', '📤 Envoyer')}
                 </button>
               </div>
             </form>
@@ -255,8 +330,8 @@ const MessagingSection = () => {
           <div className="flex-1 flex items-center justify-center text-gray-400">
             <div className="text-center">
               <p className="text-4xl mb-4">💬</p>
-              <p className="text-lg">Sélectionnez une conversation</p>
-              <p className="text-sm mt-2">ou créez-en une nouvelle</p>
+              <p className="text-lg">{t('dashboard.messaging.selectPrompt')}</p>
+              <p className="text-sm mt-2">{t('dashboard.messaging.orCreate')}</p>
             </div>
           </div>
         )}
@@ -266,12 +341,12 @@ const MessagingSection = () => {
       {showNewMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">✉️ Nouveau Message</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.messaging.modal.title')}</h3>
             
             <form onSubmit={handleNewMessage} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Destinataire *
+                  {t('dashboard.messaging.modal.recipient')}
                 </label>
                 <select
                   value={newMessageRecipient}
@@ -279,15 +354,26 @@ const MessagingSection = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 >
-                  <option value="">Sélectionner...</option>
-                  <optgroup label="📊 Mes Investisseurs">
-                    {investorsData?.investors?.map((investor) => (
-                      <option key={`investor-${investor.id}`} value={investor.id}>
-                        {investor.full_name} - {investor.total_invested_gyt} GYT investis
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="🛡️ Administrateurs">
+                  <option value="">{t('dashboard.messaging.modal.select')}</option>
+                  {userRole === 'farmer' && (
+                    <optgroup label="Investisseurs">
+                      {contactsData?.investors?.map((investor) => (
+                        <option key={`investor-${investor.id}`} value={investor.id}>
+                          {investor.full_name} - {investor.total_invested_gyt} DOLLAR investis
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {userRole === 'investor' && (
+                    <optgroup label="Agriculteurs">
+                      {contactsData?.farmers?.map((farmer) => (
+                        <option key={`farmer-${farmer.id}`} value={farmer.id}>
+                          {farmer.full_name} - {farmer.project_title}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label={t('dashboard.messaging.modal.adminsGroup')}>
                     {adminsData?.admins?.map((admin) => (
                       <option key={`admin-${admin.id}`} value={admin.id}>
                         {admin.full_name} (Support)
@@ -299,13 +385,13 @@ const MessagingSection = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sujet
+                  {t('dashboard.messaging.modal.subject')}
                 </label>
                 <input
                   type="text"
                   value={newMessageSubject}
                   onChange={(e) => setNewMessageSubject(e.target.value)}
-                  placeholder="Ex: Mise à jour de mon projet"
+                  placeholder={t('dashboard.messaging.modal.subjectPh')}
                   maxLength={200}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
@@ -313,12 +399,12 @@ const MessagingSection = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message *
+                  {t('dashboard.messaging.modal.message')}
                 </label>
                 <textarea
                   value={newMessageContent}
                   onChange={(e) => setNewMessageContent(e.target.value)}
-                  placeholder="Votre message..."
+                  placeholder={t('dashboard.messaging.modal.messagePh')}
                   rows={6}
                   maxLength={2000}
                   required
@@ -340,14 +426,14 @@ const MessagingSection = () => {
                   }}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
                 >
-                  Annuler
+                  {t('dashboard.messaging.modal.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={!newMessageRecipient || !newMessageContent.trim() || sendMessageMutation.isLoading}
                   className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  📤 Envoyer
+                  {t('dashboard.messaging.modal.send')}
                 </button>
               </div>
             </form>

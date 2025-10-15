@@ -1,96 +1,132 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
 const About = () => {
+  const { t } = useTranslation();
+  const [videoData, setVideoData] = useState({ url: '', title: '' });
+  
+  useEffect(() => {
+    const fetchVideoSettings = async () => {
+      try {
+        const response = await axios.get('/api/settings/project_video_url');
+        if (response.data.success) {
+          setVideoData({
+            url: response.data.data.value || '',
+            title: response.data.data.title || t('about.videoTitle')
+          });
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement de la vidéo:', error);
+      }
+    };
+    
+    fetchVideoSettings();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Section: Vidéo explicative */}
+        {videoData.url && (
+          <section className="mb-12">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">{videoData.title}</h1>
+            <div className="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden shadow-lg">
+              <iframe 
+                src={videoData.url}
+                title={videoData.title}
+                className="w-full h-96"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </section>
+        )}
+        
         {/* Section: Pourquoi investir */}
         <section className="mb-12">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">Pourquoi investir avec Agri Konbit ?</h1>
-          <p className="text-primary-700 font-semibold mb-4">Votre engagement pour un changement durable</p>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">{t('about.whyInvest.title')}</h1>
+          <p className="text-primary-700 font-semibold mb-4">{t('about.whyInvest.subtitle')}</p>
           <p className="text-gray-700 leading-relaxed">
-            Agri Konbit est bien plus qu’une plateforme d’investissement : c’est un mouvement collectif pour la renaissance de l’agriculture haïtienne.
-            En investissant avec nous, vous soutenez des initiatives concrètes qui créent des emplois, renforcent la sécurité alimentaire et protègent notre environnement.
+            {t('about.whyInvest.description')}
           </p>
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Impact mesurable</h3>
-              <p className="text-gray-700">Chaque investissement améliore directement les revenus des agriculteurs et réduit la dépendance alimentaire du pays.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.whyInvest.impact.title')}</h3>
+              <p className="text-gray-700">{t('about.whyInvest.impact.desc')}</p>
             </div>
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Transparence totale</h3>
-              <p className="text-gray-700">Grâce à notre tableau de bord numérique, vous suivez l’évolution de chaque projet et l’utilisation de vos fonds.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.whyInvest.transparency.title')}</h3>
+              <p className="text-gray-700">{t('about.whyInvest.transparency.desc')}</p>
             </div>
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Approche collaborative</h3>
-              <p className="text-gray-700">Inspiré du concept traditionnel du konbit, notre modèle repose sur le travail collectif et l’implication active des communautés locales.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.whyInvest.collaborative.title')}</h3>
+              <p className="text-gray-700">{t('about.whyInvest.collaborative.desc')}</p>
             </div>
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Projets durables</h3>
-              <p className="text-gray-700">Nous promouvons l’agroécologie, la gestion responsable des ressources et des pratiques respectueuses de la nature.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.whyInvest.sustainable.title')}</h3>
+              <p className="text-gray-700">{t('about.whyInvest.sustainable.desc')}</p>
             </div>
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Accès aux marchés</h3>
-              <p className="text-gray-700">Nous relions les producteurs aux acheteurs locaux et internationaux, assurant des débouchés stables et équitables.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.whyInvest.markets.title')}</h3>
+              <p className="text-gray-700">{t('about.whyInvest.markets.desc')}</p>
             </div>
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Soutien technique</h3>
-              <p className="text-gray-700">Nos agronomes et experts accompagnent les bénéficiaires pour garantir la réussite et la pérennité de chaque projet.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.whyInvest.support.title')}</h3>
+              <p className="text-gray-700">{t('about.whyInvest.support.desc')}</p>
             </div>
           </div>
         </section>
 
         {/* Section: Nos projets */}
         <section className="mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Nos projets</h2>
-          <p className="text-primary-700 font-semibold mb-4">Transformer l’agriculture, la pêche et l’élevage</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t('about.projects.title')}</h2>
+          <p className="text-primary-700 font-semibold mb-4">{t('about.projects.subtitle')}</p>
           <p className="text-gray-700 leading-relaxed">
-            Agri Konbit soutient des projets pilotes qui dynamisent les secteurs clés de l’économie rurale haïtienne. Des fermes agroécologiques aux coopératives de pêche,
-            chaque investissement contribue à bâtir un Haïti autosuffisant, prospère et tourné vers l’avenir.
+            {t('about.projects.description')}
           </p>
         </section>
 
         {/* Section: Notre vision */}
         <section className="mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Notre vision</h2>
-          <p className="text-primary-700 font-semibold mb-4">Bâtir un avenir résilient et prospère</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t('about.vision.title')}</h2>
+          <p className="text-primary-700 font-semibold mb-4">{t('about.vision.subtitle')}</p>
           <p className="text-gray-700 leading-relaxed mb-4">
-            Nous rêvons d’un Haïti où chaque communauté rurale prospère grâce à une agriculture durable et inclusive. Notre vision repose sur l’innovation, la collaboration et
-            l’autonomisation des producteurs pour construire un pays autosuffisant et fier de son potentiel.
+            {t('about.vision.description')}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Autonomisation</h3>
-              <p className="text-gray-700">Donner aux agriculteurs, pêcheurs et éleveurs les moyens de réussir.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.vision.empowerment.title')}</h3>
+              <p className="text-gray-700">{t('about.vision.empowerment.desc')}</p>
             </div>
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Durabilité</h3>
-              <p className="text-gray-700">Préserver les terres, les mers et les ressources naturelles du pays.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.vision.sustainability.title')}</h3>
+              <p className="text-gray-700">{t('about.vision.sustainability.desc')}</p>
             </div>
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Inclusion</h3>
-              <p className="text-gray-700">Placer les communautés locales et la diaspora au cœur de chaque projet.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.vision.inclusion.title')}</h3>
+              <p className="text-gray-700">{t('about.vision.inclusion.desc')}</p>
             </div>
             <div className="bg-white border rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">Prospérité</h3>
-              <p className="text-gray-700">Stimuler la croissance économique et renforcer la sécurité alimentaire nationale.</p>
+              <h3 className="font-semibold text-gray-900 mb-2">{t('about.vision.prosperity.title')}</h3>
+              <p className="text-gray-700">{t('about.vision.prosperity.desc')}</p>
             </div>
           </div>
         </section>
 
         {/* Section: Comment investir ? */}
         <section className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Comment investir ?</h2>
-          <p className="text-primary-700 font-semibold mb-4">Investissez dans l’avenir d’Haïti</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t('about.howToInvest.title')}</h2>
+          <p className="text-primary-700 font-semibold mb-4">{t('about.howToInvest.subtitle')}</p>
           <p className="text-gray-700 leading-relaxed mb-4">
-            Rejoignez Agri Konbit et participez activement à la transformation durable de l’agriculture, de la pêche et de l’élevage en Haïti.
-            Que vous soyez un particulier, une entreprise ou une organisation, votre investissement finance des projets concrets qui changent des vies.
+            {t('about.howToInvest.description')}
           </p>
           <ol className="list-decimal list-inside space-y-2 text-gray-700">
-            <li><span className="font-medium">Choisissez un projet :</span> Explorez notre catalogue de projets agricoles, piscicoles ou d’élevage et sélectionnez celui qui vous inspire.</li>
-            <li><span className="font-medium">Investissez facilement :</span> Utilisez notre plateforme sécurisée pour investir via un don, un prêt ou une prise de participation.</li>
-            <li><span className="font-medium">Suivez votre impact :</span> Consultez en temps réel les rapports d’avancement et l’utilisation de vos fonds.</li>
-            <li><span className="font-medium">Participez à la vision :</span> Devenez un acteur du changement et contribuez à bâtir le pays que nous voulons vivre.</li>
+            <li>{t('about.howToInvest.step1')}</li>
+            <li>{t('about.howToInvest.step2')}</li>
+            <li>{t('about.howToInvest.step3')}</li>
+            <li>{t('about.howToInvest.step4')}</li>
           </ol>
         </section>
       </div>

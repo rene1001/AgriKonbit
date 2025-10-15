@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { api, endpoints } from '../utils/api';
@@ -8,6 +9,7 @@ import ImageWithFallback from '../components/common/ImageWithFallback';
 import { parseImagesArray, resolveImageUrl } from '../utils/images';
 
 const ProjectDetail = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -29,17 +31,17 @@ const ProjectDetail = () => {
     },
     {
       onSuccess: () => {
-        toast.success('Investment successful');
+        toast.success(t('projectDetail.investOk'));
         queryClient.invalidateQueries(['project', id]);
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Investment failed');
+        toast.error(error.response?.data?.message || t('projectDetail.investFail'));
       }
     }
   );
 
-  if (isLoading) return <div className="max-w-7xl mx-auto p-6">Loading project...</div>;
-  if (isError || !data) return <div className="max-w-7xl mx-auto p-6 text-red-600">Failed to load project.</div>;
+  if (isLoading) return <div className="max-w-7xl mx-auto p-6">{t('projectDetail.loading')}</div>;
+  if (isError || !data) return <div className="max-w-7xl mx-auto p-6 text-red-600">{t('projectDetail.loadError')}</div>;
 
   const project = data;
 
@@ -49,7 +51,7 @@ const ProjectDetail = () => {
       return;
     }
     if (amount < 10) {
-      toast.error('Minimum investment is 10 GYT');
+      toast.error(t('projectDetail.minError'));
       return;
     }
     investMutation.mutate({ amountGyt: Number(amount) });
@@ -62,7 +64,7 @@ const ProjectDetail = () => {
           onClick={() => navigate(-1)}
           className="text-sm text-gray-600 hover:text-gray-900 underline"
         >
-          ← Retour
+          {t('projectDetail.back')}
         </button>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -87,25 +89,25 @@ const ProjectDetail = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="card">
-              <div className="text-xs text-gray-500">Budget</div>
-              <div className="font-semibold">{project.budget_gyt} GYT</div>
+              <div className="text-xs text-gray-500">{t('projectDetail.cards.budget')}</div>
+              <div className="font-semibold">{project.budget_gyt} DOLLAR</div>
             </div>
             <div className="card">
-              <div className="text-xs text-gray-500">Return</div>
-              <div className="font-semibold">{project.estimated_return_pct}% yearly</div>
+              <div className="text-xs text-gray-500">{t('projectDetail.cards.return')}</div>
+              <div className="font-semibold">{t('projectDetail.cards.returnYearly', { percent: project.estimated_return_pct })}</div>
             </div>
             <div className="card">
-              <div className="text-xs text-gray-500">Duration</div>
-              <div className="font-semibold">{project.duration_days} days</div>
+              <div className="text-xs text-gray-500">{t('projectDetail.cards.duration')}</div>
+              <div className="font-semibold">{t('projectDetail.cards.durationDays', { days: project.duration_days })}</div>
             </div>
             <div className="card">
-              <div className="text-xs text-gray-500">Progress</div>
+              <div className="text-xs text-gray-500">{t('projectDetail.cards.progress')}</div>
               <div className="font-semibold">{project.funding_percentage}%</div>
             </div>
           </div>
 
           <div className="card">
-            <h3 className="font-semibold mb-3">Project Updates</h3>
+            <h3 className="font-semibold mb-3">{t('projectDetail.updates')}</h3>
             {data.updates?.length ? (
               <ul className="space-y-3">
                 {data.updates.map((u) => (
@@ -116,7 +118,7 @@ const ProjectDetail = () => {
                 ))}
               </ul>
             ) : (
-              <div className="text-gray-500 text-sm">No updates yet.</div>
+              <div className="text-gray-500 text-sm">{t('projectDetail.noUpdates')}</div>
             )}
           </div>
         </div>
@@ -132,12 +134,12 @@ const ProjectDetail = () => {
                 />
               </div>
               <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>{project.funded_amount_gyt} / {project.budget_gyt} GYT</span>
+                <span>{project.funded_amount_gyt} / {project.budget_gyt} DOLLAR</span>
                 <span>{project.funding_percentage || 0}%</span>
               </div>
             </div>
 
-            <label className="label">Amount (GYT)</label>
+            <label className="label">{t('projectDetail.amountLabel')}</label>
             <input
               type="number"
               min="10"
@@ -150,15 +152,15 @@ const ProjectDetail = () => {
               onClick={handleInvest}
               disabled={investMutation.isLoading}
             >
-              {investMutation.isLoading ? 'Processing...' : 'Invest with GYT Wallet'}
+              {investMutation.isLoading ? t('projectDetail.processing') : t('projectDetail.investBtn')}
             </button>
 
             <div className="text-xs text-gray-500 mt-2">
-              Minimum 10 GYT. You can also deposit GYT via Payments.
+              {t('projectDetail.minInfo')}
             </div>
 
             <div className="border-t mt-4 pt-4">
-              <Link to="/dashboard" className="text-primary-600 text-sm">Go to dashboard</Link>
+              <Link to="/dashboard" className="text-primary-600 text-sm">{t('projectDetail.goDashboard')}</Link>
             </div>
           </div>
         </div>

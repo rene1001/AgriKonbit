@@ -2,6 +2,7 @@ const express = require('express');
 const { query } = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
+const { getIO } = require('../config/io');
 
 // Get user notifications
 router.get('/', authenticateToken, async (req, res) => {
@@ -68,9 +69,19 @@ router.patch('/:id/read', authenticateToken, async (req, res) => {
 
     await query(`
       UPDATE notifications 
-      SET is_read = true, updated_at = NOW()
+      SET is_read = true
       WHERE id = ? AND user_id = ?
     `, [id, req.user.id]);
+
+    // Emit updated unread count
+    try {
+      const [r] = await query(
+        'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = false',
+        [req.user.id]
+      );
+      const io = getIO();
+      if (io) io.to(`user_${req.user.id}`).emit('unread_count', { count: r.count });
+    } catch (_) {}
 
     res.json({
       success: true,
@@ -91,9 +102,19 @@ router.patch('/read-all', authenticateToken, async (req, res) => {
   try {
     await query(`
       UPDATE notifications 
-      SET is_read = true, updated_at = NOW()
+      SET is_read = true
       WHERE user_id = ? AND is_read = false
     `, [req.user.id]);
+
+    // Emit updated unread count
+    try {
+      const [r] = await query(
+        'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = false',
+        [req.user.id]
+      );
+      const io = getIO();
+      if (io) io.to(`user_${req.user.id}`).emit('unread_count', { count: r.count });
+    } catch (_) {}
 
     res.json({
       success: true,
@@ -118,6 +139,25 @@ router.post('/', authenticateToken, async (req, res) => {
       INSERT INTO notifications (user_id, title, message, type, data, created_at)
       VALUES (?, ?, ?, ?, ?, NOW())
     `, [user_id, title, message, type, JSON.stringify(data)]);
+
+    // Emit new notification and updated unread count
+    try {
+      const io = getIO();
+      if (io) {
+        io.to(`user_${user_id}`).emit('notification:new', {
+          id: result.insertId,
+          title,
+          message,
+          type,
+          data
+        });
+        const [r] = await query(
+          'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = false',
+          [user_id]
+        );
+        io.to(`user_${user_id}`).emit('unread_count', { count: r.count });
+      }
+    } catch (_) {}
 
     res.json({
       success: true,
@@ -149,6 +189,16 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: 'Notification not found' });
     }
+
+    // Emit updated unread count
+    try {
+      const [r] = await query(
+        'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = false',
+        [req.user.id]
+      );
+      const io = getIO();
+      if (io) io.to(`user_${req.user.id}`).emit('unread_count', { count: r.count });
+    } catch (_) {}
 
     res.json({ success: true, message: 'Notification deleted' });
   } catch (error) {

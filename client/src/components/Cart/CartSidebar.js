@@ -2,8 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { FiX, FiTrash2 } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 
 const CartSidebar = () => {
+  const { t } = useTranslation();
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, getTotalPrice } = useCart();
 
   return (
@@ -19,7 +21,7 @@ const CartSidebar = () => {
         className={`absolute right-0 top-0 h-full w-full sm:w-[400px] bg-white shadow-xl transform transition-transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold">Your Cart</h3>
+          <h3 className="text-lg font-semibold">{t('cart.title')}</h3>
           <button
             className="p-2 rounded hover:bg-gray-100"
             onClick={() => setIsOpen(false)}
@@ -31,7 +33,7 @@ const CartSidebar = () => {
 
         <div className="p-4 h-[calc(100%-160px)] overflow-y-auto">
           {items.length === 0 ? (
-            <div className="text-center text-gray-500 py-10">Your cart is empty</div>
+            <div className="text-center text-gray-500 py-10">{t('cart.empty')}</div>
           ) : (
             <ul className="space-y-4">
               {items.map((item) => (
@@ -80,7 +82,7 @@ const CartSidebar = () => {
 
         <div className="p-4 border-t border-gray-200">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-gray-600">Subtotal</span>
+            <span className="text-gray-600">{t('cart.subtotal')}</span>
             <span className="font-semibold">${Number(getTotalPrice('usd')).toFixed(2)}</span>
           </div>
           <Link
@@ -88,7 +90,7 @@ const CartSidebar = () => {
             className={`btn btn-primary w-full ${items.length === 0 ? 'pointer-events-none opacity-60' : ''}`}
             onClick={() => setIsOpen(false)}
           >
-            Proceed to Checkout
+            {t('cart.checkout')}
           </Link>
         </div>
       </div>

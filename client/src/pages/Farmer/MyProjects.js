@@ -22,7 +22,7 @@ const MyProjects = () => {
             <div key={p.id} className="card">
               <div className="font-semibold">{p.title}</div>
               <div className="text-sm text-gray-600">Statut: {p.status}</div>
-              <div className="text-sm text-gray-600">Collecté: {p.funded_amount_gyt} / {p.budget_gyt} GYT</div>
+              <div className="text-sm text-gray-600">Collecté: {p.funded_amount_gyt} / {p.budget_gyt} DOLLAR</div>
             </div>
           ))}
         </div>

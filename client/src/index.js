@@ -6,6 +6,8 @@ import { Toaster } from 'react-hot-toast';
 import './index.css';
 import './i18n';
 import App from './App';
+import { SocketProvider } from './contexts/SocketContext';
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -23,7 +25,9 @@ root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <App />
+        <SocketProvider>
+          <App />
+        </SocketProvider>
         <Toaster
           position="top-right"
           toastOptions={{
@@ -52,3 +56,20 @@ root.render(
     </QueryClientProvider>
   </React.StrictMode>
 );
+
+// Enregistrer le Service Worker (PWA)
+serviceWorkerRegistration.register({
+  onSuccess: () => {
+    console.log('✅ Contenu mis en cache pour utilisation hors ligne');
+  },
+  onUpdate: (registration) => {
+    console.log('🔄 Nouveau contenu disponible');
+    // Optionnel: afficher notification de mise à jour
+    if (window.confirm('Une nouvelle version est disponible. Recharger ?')) {
+      window.location.reload();
+    }
+  }
+});
+
+// Afficher le prompt d'installation PWA
+serviceWorkerRegistration.showInstallPrompt();

@@ -93,7 +93,10 @@ export const endpoints = {
   
   // Users
   users: {
+    profile: '/users/profile',
     updateProfile: '/users/profile',
+    uploadProfileImage: '/users/profile/image',
+    deleteProfileImage: '/users/profile/image',
     changePassword: '/users/change-password',
     notifications: '/users/notifications',
     markNotificationRead: (id) => `/users/notifications/${id}/read`,
@@ -164,6 +167,7 @@ export const endpoints = {
     conversationMessages: (id) => `/messages/conversations/${id}/messages`,
     send: '/messages/send',
     investorsList: '/messages/farmer/investors-list',
+    farmersList: '/messages/investor/farmers-list',
     admins: '/messages/admins',
     deleteMessage: (id) => `/messages/messages/${id}`,
     adminBroadcastPrivate: '/messages/admin/broadcast-private',
@@ -182,7 +186,8 @@ export const endpoints = {
   notifications: {
     list: '/notifications',
     markRead: (id) => `/notifications/${id}/read`,
-    markAllRead: '/notifications/read-all'
+    markAllRead: '/notifications/read-all',
+    delete: (id) => `/notifications/${id}`
   },
 
   // Wallet

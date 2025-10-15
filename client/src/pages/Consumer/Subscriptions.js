@@ -62,7 +62,7 @@ const Subscriptions = () => {
               <option value="monthly">Mensuel</option>
             </select>
             <select className="input" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-              <option value="gyt_wallet">GYT Wallet</option>
+              <option value="gyt_wallet">DOLLAR Wallet</option>
               <option value="card">Carte</option>
               <option value="paypal">PayPal</option>
             </select>

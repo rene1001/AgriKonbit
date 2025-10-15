@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
+import { useTranslation } from 'react-i18next';
 import { api, endpoints } from '../../utils/api';
+import { useSocket } from '../../contexts/SocketContext';
+import toast from 'react-hot-toast';
 
 const ConsumerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const { t } = useTranslation();
 
   const { data: me } = useQuery(['me'], async () => {
     const res = await api.get(endpoints.auth.me);
@@ -24,6 +28,34 @@ const ConsumerDashboard = () => {
     delivered: myOrders.filter(o => o.status === 'delivered').length || 0
   };
 
+  // Real-time: update mini dropdown on new notifications
+  useEffect(() => {
+    if (!socket) return;
+
+    const onNotifNew = (n) => {
+      // Update unread count query and recent notifications
+      queryClient.invalidateQueries(['notifications-unread-count']);
+      queryClient.setQueryData(['notifications-recent'], (prev) => {
+        const prevData = prev && typeof prev === 'object' ? prev : {};
+        const list = Array.isArray(prevData.notifications) ? prevData.notifications : [];
+        const next = [{
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          type: n.type,
+          is_read: false,
+          created_at: new Date().toISOString(),
+          data: n.data || null
+        }, ...list].slice(0, 5);
+        return { ...prevData, notifications: next };
+      });
+      toast.success(n.title || t('notifications.new', 'Nouvelle notification'));
+    };
+
+    socket.on('notification:new', onNotifNew);
+    return () => socket.off('notification:new', onNotifNew);
+  }, [socket, queryClient]);
+
   const { data: notifData } = useQuery(['notifications', { unread_only: true }], async () => {
     const res = await api.get(endpoints.notifications.list, { params: { unread_only: true, limit: 1 } });
     return res.data.data;
@@ -36,10 +68,14 @@ const ConsumerDashboard = () => {
     return res.data.data;
   });
   const [openNotif, setOpenNotif] = useState(false);
+  const queryClient = useQueryClient();
+  const { socket } = useSocket();
   const onMarkAll = async () => {
     try {
       await api.patch(endpoints.notifications.markAllRead);
       setOpenNotif(false);
+      queryClient.invalidateQueries(['notifications-unread-count']);
+      queryClient.invalidateQueries(['notifications-recent']);
     } catch (e) {
       // ignore
     }
@@ -47,8 +83,21 @@ const ConsumerDashboard = () => {
   const onMarkOne = async (id) => {
     try {
       await api.patch(endpoints.notifications.markRead(id));
+      queryClient.invalidateQueries(['notifications-unread-count']);
+      queryClient.invalidateQueries(['notifications-recent']);
     } catch (e) {
       // ignore
+    }
+  };
+
+  const onDeleteOne = async (id) => {
+    try {
+      await api.delete(endpoints.notifications.delete(id));
+      queryClient.invalidateQueries(['notifications-unread-count']);
+      queryClient.invalidateQueries(['notifications-recent']);
+      toast.success(t('notifications.deleted', 'Notification supprimée'));
+    } catch (e) {
+      toast.error(t('common.operationFailed', "Échec de l'opération"));
     }
   };
 
@@ -58,13 +107,13 @@ const ConsumerDashboard = () => {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">🛍️ Tableau de bord Consommateur</h1>
-            <p className="text-gray-600 mt-1">Achats, traçabilité et livraisons</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.consumer.title')}</h1>
+            <p className="text-gray-600 mt-1">{t('dashboard.consumer.subtitle')}</p>
           </div>
           <div className="flex items-center gap-3 relative">
             <button type="button" onClick={() => setOpenNotif(v => !v)} className="relative inline-flex items-center px-3 py-2 bg-white border rounded-lg hover:shadow">
               <span className="mr-2">🔔</span>
-              <span className="text-sm">Notifications</span>
+              <span className="text-sm">{t('dashboard.consumer.notifications')}</span>
               {unread > 0 && (
                 <span className="ml-2 inline-flex items-center justify-center h-5 min-w-[20px] px-1 rounded-full bg-red-600 text-white text-xs">{unread}</span>
               )}
@@ -72,34 +121,37 @@ const ConsumerDashboard = () => {
             {openNotif && (
               <div className="absolute right-0 top-12 w-80 bg-white border rounded-lg shadow-lg z-20">
                 <div className="flex items-center justify-between p-2 border-b">
-                  <div className="font-semibold text-sm">Notifications</div>
-                  <button className="text-xs text-primary-600 hover:underline" onClick={onMarkAll}>Tout lire</button>
+                  <div className="font-semibold text-sm">{t('dashboard.consumer.notifications')}</div>
+                  <button className="text-xs text-primary-600 hover:underline" onClick={onMarkAll}>{t('dashboard.consumer.markAll')}</button>
                 </div>
                 <div className="max-h-80 overflow-auto">
                   {(recentNotifs?.notifications || []).map(n => (
                     <div key={n.id} className={`px-3 py-2 text-sm border-b flex items-start gap-2 ${n.is_read ? 'bg-white' : 'bg-gray-50'}`}>
                       <div className={`mt-1 h-2 w-2 rounded-full ${n.is_read ? 'bg-gray-300' : 'bg-primary-500'}`}></div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{n.title || 'Notification'}</div>
+                        <div className="font-medium truncate">{n.title || t('dashboard.consumer.notifications')}</div>
                         <div className="text-gray-600 truncate">{n.message}</div>
                         <div className="text-xs text-gray-500">{new Date(n.created_at).toLocaleString()}</div>
                       </div>
-                      {!n.is_read && (
-                        <button className="text-xs text-primary-600 hover:underline" onClick={() => onMarkOne(n.id)}>Lu</button>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {!n.is_read && (
+                          <button className="text-xs text-primary-600 hover:underline" onClick={() => onMarkOne(n.id)}>{t('notifications.markRead', 'Lire')}</button>
+                        )}
+                        <button className="text-xs text-red-600 hover:underline" onClick={() => onDeleteOne(n.id)}>{t('notifications.delete', 'Suppr.')}</button>
+                      </div>
                     </div>
                   ))}
                   {(recentNotifs?.notifications || []).length === 0 && (
-                    <div className="px-3 py-4 text-sm text-gray-500">Aucune notification</div>
+                    <div className="px-3 py-4 text-sm text-gray-500">{t('dashboard.consumer.none')}</div>
                   )}
                 </div>
                 <div className="p-2 border-t text-right">
-                  <Link to="/notifications" className="text-sm text-primary-600 hover:underline" onClick={() => setOpenNotif(false)}>Voir tout</Link>
+                  <Link to="/notifications" className="text-sm text-primary-600 hover:underline" onClick={() => setOpenNotif(false)}>{t('dashboard.consumer.viewAll')}</Link>
                 </div>
               </div>
             )}
             <Link to="/marketplace" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
-              Parcourir le Marketplace
+              {t('nav.marketplace')}
             </Link>
           </div>
         </div>
@@ -109,14 +161,14 @@ const ConsumerDashboard = () => {
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px overflow-x-auto">
               {[
-                { key: 'overview', label: '📊 Vue d\'ensemble' },
-                { key: 'orders', label: '🧾 Mes commandes', to: '/orders' },
-                { key: 'deliveries', label: '🚚 Livraisons', to: '/deliveries' },
-                { key: 'wallet', label: '💰 Portefeuille', to: '/wallet' },
-                { key: 'favorites', label: '⭐ Favoris', to: '/favorites' },
-                { key: 'subscriptions', label: '🔁 Abonnements', to: '/subscriptions' },
-                { key: 'profile', label: '👤 Profil', to: '/profile' },
-                { key: 'support', label: '🆘 Support', to: '/support' }
+                { key: 'overview', label: t('dashboard.consumer.tabs.overview') },
+                { key: 'orders', label: t('dashboard.consumer.tabs.orders'), to: '/orders' },
+                { key: 'deliveries', label: t('dashboard.consumer.tabs.deliveries'), to: '/deliveries' },
+                { key: 'wallet', label: t('dashboard.consumer.tabs.wallet'), to: '/wallet' },
+                { key: 'favorites', label: t('dashboard.consumer.tabs.favorites'), to: '/favorites' },
+                { key: 'subscriptions', label: t('dashboard.consumer.tabs.subscriptions'), to: '/subscriptions' },
+                { key: 'profile', label: t('dashboard.consumer.tabs.profile'), to: '/profile' },
+                { key: 'support', label: t('dashboard.consumer.tabs.support'), to: '/support' }
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -141,19 +193,19 @@ const ConsumerDashboard = () => {
               {/* Stats */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <Link to="/wallet" className="card hover:shadow">
-                  <div className="text-sm text-gray-500">Solde GYT</div>
-                  <div className="text-3xl font-bold">{me?.gytBalance || 0} GYT</div>
+                  <div className="text-sm text-gray-500">{t('dashboard.consumer.stats.balance')}</div>
+                  <div className="text-3xl font-bold">{me?.gytBalance || 0} DOLLAR</div>
                 </Link>
                 <Link to="/orders" className="card hover:shadow">
-                  <div className="text-sm text-gray-500">Total Commandes</div>
+                  <div className="text-sm text-gray-500">{t('dashboard.consumer.stats.totalOrders')}</div>
                   <div className="text-3xl font-bold">{orderStats.total}</div>
                 </Link>
                 <Link to="/deliveries" className="card hover:shadow">
-                  <div className="text-sm text-gray-500">En cours</div>
+                  <div className="text-sm text-gray-500">{t('dashboard.consumer.stats.inProgress')}</div>
                   <div className="text-3xl font-bold text-yellow-600">{orderStats.pending}</div>
                 </Link>
                 <Link to="/orders" className="card hover:shadow">
-                  <div className="text-sm text-gray-500">Livrées</div>
+                  <div className="text-sm text-gray-500">{t('dashboard.consumer.stats.delivered')}</div>
                   <div className="text-3xl font-bold text-green-600">{orderStats.delivered}</div>
                 </Link>
               </div>
@@ -161,28 +213,36 @@ const ConsumerDashboard = () => {
               {/* Recent Orders */}
               <div className="card">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Mes Commandes Récentes</h2>
-                  <Link to="/orders" className="text-primary-600 text-sm">Voir toutes</Link>
+                  <h2 className="text-lg font-semibold">{t('dashboard.consumer.recentOrders')}</h2>
+                  <Link to="/orders" className="text-primary-600 text-sm">{t('dashboard.consumer.viewAll')}</Link>
                 </div>
                 <div className="space-y-3">
                   {myOrders?.slice(0, 5).map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <div>
-                        <div className="font-medium">Commande #{order.order_number}</div>
+                    <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition">
+                      <div className="flex-1">
+                        <div className="font-medium">{t('orders.fields.orderNumber')} #{order.order_number}</div>
                         <div className="text-sm text-gray-600">{new Date(order.created_at).toLocaleDateString()} • ${Number(order.total_usd || 0).toFixed(2)}</div>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                        order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                        order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {order.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                          order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {t(`orders.status.${order.status}`, order.status)}
+                        </span>
+                        <Link 
+                          to={`/orders/${order.id}/track`}
+                          className="px-3 py-1 bg-emerald-600 text-white text-xs rounded hover:bg-emerald-700 transition"
+                        >
+                          📍 Suivre
+                        </Link>
+                      </div>
                     </div>
                   ))}
                   {(!myOrders || myOrders.length === 0) && (
-                    <div className="text-center text-gray-500 py-8">Aucune commande pour le moment</div>
+                    <div className="text-center text-gray-500 py-8">{t('dashboard.consumer.noOrders')}</div>
                   )}
                 </div>
               </div>
@@ -192,15 +252,15 @@ const ConsumerDashboard = () => {
                 <Link to="/marketplace" className="card hover:shadow-lg transition-shadow">
                   <div className="text-center">
                     <div className="text-4xl mb-2">🛒</div>
-                    <div className="font-semibold">Marketplace</div>
-                    <div className="text-sm text-gray-600">Acheter des produits</div>
+                    <div className="font-semibold">{t('dashboard.consumer.marketplaceCard.title')}</div>
+                    <div className="text-sm text-gray-600">{t('dashboard.consumer.marketplaceCard.desc')}</div>
                   </div>
                 </Link>
                 <Link to="/deliveries" className="card hover:shadow-lg transition-shadow">
                   <div className="text-center">
                     <div className="text-4xl mb-2">🚚</div>
-                    <div className="font-semibold">Suivi des livraisons</div>
-                    <div className="text-sm text-gray-600">Suivre vos colis</div>
+                    <div className="font-semibold">{t('dashboard.consumer.deliveriesCard.title')}</div>
+                    <div className="text-sm text-gray-600">{t('dashboard.consumer.deliveriesCard.desc')}</div>
                   </div>
                 </Link>
               </div>
@@ -211,10 +271,10 @@ const ConsumerDashboard = () => {
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">Mes commandes</div>
-                  <div className="text-sm text-gray-600">Consulter et télécharger vos factures</div>
+                  <div className="font-semibold">{t('dashboard.consumer.tabs.orders')}</div>
+                  <div className="text-sm text-gray-600">{t('dashboard.consumer.viewAll')}</div>
                 </div>
-                <Link to="/orders" className="btn btn-primary">Ouvrir</Link>
+                <Link to="/orders" className="btn btn-primary">{t('dashboard.consumer.open')}</Link>
               </div>
             </div>
           )}
@@ -223,10 +283,10 @@ const ConsumerDashboard = () => {
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">Suivi des livraisons</div>
-                  <div className="text-sm text-gray-600">Tracking en temps réel</div>
+                  <div className="font-semibold">{t('dashboard.consumer.deliveriesCard.title')}</div>
+                  <div className="text-sm text-gray-600">{t('dashboard.consumer.deliveriesCard.desc')}</div>
                 </div>
-                <Link to="/deliveries" className="btn btn-primary">Ouvrir</Link>
+                <Link to="/deliveries" className="btn btn-primary">{t('dashboard.consumer.open')}</Link>
               </div>
             </div>
           )}
@@ -235,10 +295,10 @@ const ConsumerDashboard = () => {
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">Portefeuille GYT</div>
-                  <div className="text-sm text-gray-600">Solde et historique</div>
+                  <div className="font-semibold">{t('dashboard.consumer.tabs.wallet')}</div>
+                  <div className="text-sm text-gray-600">{t('dashboard.consumer.stats.balance')}</div>
                 </div>
-                <Link to="/wallet" className="btn btn-primary">Ouvrir</Link>
+                <Link to="/wallet" className="btn btn-primary">{t('dashboard.consumer.open')}</Link>
               </div>
             </div>
           )}
@@ -247,10 +307,10 @@ const ConsumerDashboard = () => {
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">Favoris</div>
-                  <div className="text-sm text-gray-600">Produits et producteurs</div>
+                  <div className="font-semibold">{t('dashboard.consumer.tabs.favorites')}</div>
+                  <div className="text-sm text-gray-600">{t('dashboard.consumer.viewAll')}</div>
                 </div>
-                <Link to="/favorites" className="btn btn-primary">Ouvrir</Link>
+                <Link to="/favorites" className="btn btn-primary">{t('dashboard.consumer.open')}</Link>
               </div>
             </div>
           )}
@@ -259,10 +319,10 @@ const ConsumerDashboard = () => {
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">Abonnements</div>
-                  <div className="text-sm text-gray-600">Commandes récurrentes</div>
+                  <div className="font-semibold">{t('dashboard.consumer.tabs.subscriptions')}</div>
+                  <div className="text-sm text-gray-600">{t('dashboard.consumer.viewAll')}</div>
                 </div>
-                <Link to="/subscriptions" className="btn btn-primary">Ouvrir</Link>
+                <Link to="/subscriptions" className="btn btn-primary">{t('dashboard.consumer.open')}</Link>
               </div>
             </div>
           )}
@@ -271,10 +331,10 @@ const ConsumerDashboard = () => {
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">Profil & Paramètres</div>
-                  <div className="text-sm text-gray-600">Adresse, paiement, préférences</div>
+                  <div className="font-semibold">{t('dashboard.consumer.tabs.profile')}</div>
+                  <div className="text-sm text-gray-600">{t('dashboard.consumer.viewAll')}</div>
                 </div>
-                <Link to="/profile" className="btn btn-primary">Ouvrir</Link>
+                <Link to="/profile" className="btn btn-primary">{t('dashboard.consumer.open')}</Link>
               </div>
             </div>
           )}
@@ -283,10 +343,10 @@ const ConsumerDashboard = () => {
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold">Support & Communauté</div>
-                  <div className="text-sm text-gray-600">FAQ, tickets, chat</div>
+                  <div className="font-semibold">{t('dashboard.consumer.tabs.support')}</div>
+                  <div className="text-sm text-gray-600">{t('dashboard.consumer.viewAll')}</div>
                 </div>
-                <Link to="/support" className="btn btn-primary">Ouvrir</Link>
+                <Link to="/support" className="btn btn-primary">{t('dashboard.consumer.open')}</Link>
               </div>
             </div>
           )}

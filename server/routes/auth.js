@@ -39,7 +39,8 @@ router.post('/register', [
     }
 
     // Hash password
-    const saltRounds = 12;
+    // Use 10 rounds in development for better performance, 12 in production for security
+    const saltRounds = process.env.NODE_ENV === 'production' ? 12 : 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Create user

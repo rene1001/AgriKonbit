@@ -1,0 +1,43 @@
+═══════════════════════════════════════════════════════════════
+  🚀 TESTS UTILISATEURS PROFESSIONNELS - AGRIKONBIT
+═══════════════════════════════════════════════════════════════
+
+✅ TOUT EST PRÊT ! Serveurs actifs, comptes configurés.
+
+🌐 ACCÉDER AU SITE : http://localhost:3000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👨‍🌾 FARMER (Agriculteur)
+   Email    : farmer1@agrikonbit.com
+   Password : password123
+   Actions  : Créer projets, vendre produits, gérer commandes
+
+💰 INVESTOR (Investisseur)
+   Email    : investor1@agrikonbit.com
+   Password : password123
+   Solde    : 950 GYT
+   Actions  : Investir dans projets, consulter portefeuille
+
+🛒 CONSUMER (Consommateur)
+   Email    : consumer1@agrikonbit.com
+   Password : password123
+   Solde    : 250 GYT
+   Actions  : Acheter produits, tracer avec blockchain
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 RÉSULTATS TESTS AUTOMATISÉS : 81% (17/21 tests passés) ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTATION :
+   - TEST_RAPIDE_PRO.md        → Guide rapide (COMMENCEZ ICI)
+   - GUIDE_TEST_UTILISATEURS_PRO.md → Guide complet détaillé
+   - RAPPORT_TESTS_PRO.md      → Rapport des tests effectués
+
+🔧 SCRIPTS UTILES :
+   node test-users-pro.js       → Relancer les tests automatisés
+   node reset-all-test-users.js → Réinitialiser les mots de passe
+
+═══════════════════════════════════════════════════════════════

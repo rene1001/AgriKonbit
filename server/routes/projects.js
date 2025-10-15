@@ -57,10 +57,16 @@ router.get('/', async (req, res) => {
       ${whereClause}
     `, params);
 
+    // Parse images JSON string for each project
+    const projectsWithParsedImages = projects.map(project => ({
+      ...project,
+      images: project.images ? JSON.parse(project.images) : []
+    }));
+
     res.json({
       success: true,
       data: {
-        projects,
+        projects: projectsWithParsedImages,
         pagination: {
           page: pageNum,
           limit: limitNum,
@@ -126,6 +132,10 @@ router.get('/:id', async (req, res) => {
     }
 
     const project = projects[0];
+
+    // Parse images and documents JSON strings
+    project.images = project.images ? JSON.parse(project.images) : [];
+    project.documents = project.documents ? JSON.parse(project.documents) : [];
 
     // Get project updates
     const updates = await query(`

@@ -1,36 +1,38 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 const ProjectsSection = ({ stats, myProjects }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">🌱 Gestion des Projets</h2>
+        <h2 className="text-xl font-bold text-gray-900">{t('dashboard.projects.header')}</h2>
         <Link to="/farmer/submit-project" className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-          ➕ Nouveau Projet
+          {t('dashboard.projects.newProject')}
         </Link>
       </div>
       
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div className="bg-blue-50 rounded-lg p-4">
-          <p className="text-sm text-blue-600 font-medium">Total</p>
+          <p className="text-sm text-blue-600 font-medium">{t('dashboard.projects.stats.total')}</p>
           <p className="text-2xl font-bold text-blue-900">{stats?.projects?.total_projects || 0}</p>
         </div>
         <div className="bg-yellow-50 rounded-lg p-4">
-          <p className="text-sm text-yellow-600 font-medium">En attente</p>
+          <p className="text-sm text-yellow-600 font-medium">{t('dashboard.projects.stats.pending')}</p>
           <p className="text-2xl font-bold text-yellow-900">{stats?.projects?.pending_projects || 0}</p>
         </div>
         <div className="bg-green-50 rounded-lg p-4">
-          <p className="text-sm text-green-600 font-medium">Validés</p>
+          <p className="text-sm text-green-600 font-medium">{t('dashboard.projects.stats.validated')}</p>
           <p className="text-2xl font-bold text-green-900">{stats?.projects?.validated_projects || 0}</p>
         </div>
         <div className="bg-purple-50 rounded-lg p-4">
-          <p className="text-sm text-purple-600 font-medium">Actifs</p>
+          <p className="text-sm text-purple-600 font-medium">{t('dashboard.projects.stats.active')}</p>
           <p className="text-2xl font-bold text-purple-900">{stats?.projects?.active_projects || 0}</p>
         </div>
         <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600 font-medium">Terminés</p>
+          <p className="text-sm text-gray-600 font-medium">{t('dashboard.projects.stats.completed')}</p>
           <p className="text-2xl font-bold text-gray-900">{stats?.projects?.completed_projects || 0}</p>
         </div>
       </div>
@@ -59,7 +61,7 @@ const ProjectsSection = ({ stats, myProjects }) => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div>
                     <p className="text-xs text-gray-500">Budget</p>
-                    <p className="text-sm font-semibold text-gray-900">{project.budget_gyt} GYT</p>
+                    <p className="text-sm font-semibold text-gray-900">{project.budget_gyt} DOLLAR</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Financé</p>
@@ -83,20 +85,25 @@ const ProjectsSection = ({ stats, myProjects }) => {
                   ></div>
                 </div>
               </div>
-              
               <div className="flex flex-col gap-2 ml-4">
+                <Link 
+                  to={`/farmer/projects/${project.id}/manage`} 
+                  className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg hover:bg-emerald-700 transition text-center"
+                >
+                  📊 Gérer
+                </Link>
                 <Link 
                   to={`/projects/${project.id}`} 
                   className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition text-center"
                 >
-                  Voir détails
+                  {t('dashboard.projects.buttons.details')}
                 </Link>
                 {project.status === 'pending' && (
                   <Link 
                     to={`/farmer/edit-project/${project.id}`} 
                     className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition text-center"
                   >
-                    Modifier
+                    {t('dashboard.projects.buttons.edit')}
                   </Link>
                 )}
                 {(project.status === 'active' || project.status === 'completed') && (
@@ -104,7 +111,7 @@ const ProjectsSection = ({ stats, myProjects }) => {
                     to={`/farmer/project-updates/${project.id}`} 
                     className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition text-center"
                   >
-                    Ajouter MAJ
+                    {t('dashboard.projects.buttons.addUpdate')}
                   </Link>
                 )}
               </div>
@@ -114,9 +121,9 @@ const ProjectsSection = ({ stats, myProjects }) => {
 
         {(!myProjects || myProjects.length === 0) && (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg mb-4">Aucun projet pour le moment</p>
+            <p className="text-gray-500 text-lg mb-4">{t('dashboard.overview.recentProjects.none')}</p>
             <Link to="/farmer/submit-project" className="inline-block px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-              Créer votre premier projet
+              {t('dashboard.projects.newProject')}
             </Link>
           </div>
         )}

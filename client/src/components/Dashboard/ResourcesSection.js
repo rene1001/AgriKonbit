@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 const ResourcesSection = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('guides');
   const [expandedFaq, setExpandedFaq] = useState(null);
 
@@ -50,7 +52,7 @@ const ResourcesSection = () => {
       id: 6,
       title: '📊 Gérer vos Finances',
       category: 'Finances',
-      description: 'Comprendre votre portefeuille GYT et optimiser vos retraits.',
+      description: 'Comprendre votre portefeuille DOLLAR et optimiser vos retraits.',
       duration: '8 min',
       topics: ['Portefeuille', 'Retraits', 'Transactions', 'Sécurité']
     }
@@ -158,7 +160,7 @@ const ResourcesSection = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">📚 Centre de Ressources</h1>
+        <h1 className="text-2xl font-bold mb-2">{t('dashboard.resources.header')}</h1>
         <p className="text-green-50">
           Guides, tutoriels et support pour vous aider à réussir sur AgriKonbit
         </p>
@@ -176,7 +178,7 @@ const ResourcesSection = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              📖 Guides
+              {t('dashboard.resources.tabs.guides')}
             </button>
             <button
               onClick={() => setActiveTab('videos')}
@@ -186,7 +188,7 @@ const ResourcesSection = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              🎥 Vidéos
+              {t('dashboard.resources.tabs.videos')}
             </button>
             <button
               onClick={() => setActiveTab('faq')}
@@ -196,7 +198,7 @@ const ResourcesSection = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              ❓ FAQ
+              {t('dashboard.resources.tabs.faq')}
             </button>
             <button
               onClick={() => setActiveTab('support')}
@@ -206,7 +208,7 @@ const ResourcesSection = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              🛟 Support
+              {t('dashboard.resources.tabs.support')}
             </button>
           </nav>
         </div>
@@ -322,7 +324,7 @@ const ResourcesSection = () => {
 
               {/* Quick Help */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                <h3 className="text-lg font-bold text-blue-900 mb-2">💡 Besoin d'aide rapide ?</h3>
+                <h3 className="text-lg font-bold text-blue-900 mb-2">{t('dashboard.resources.quickHelp.title')}</h3>
                 <p className="text-blue-700 mb-4">
                   Consultez d'abord notre FAQ, la plupart des réponses s'y trouvent !
                 </p>
@@ -331,13 +333,13 @@ const ResourcesSection = () => {
                     onClick={() => setActiveTab('faq')}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                   >
-                    Voir la FAQ
+                    {t('dashboard.resources.quickHelp.faq')}
                   </button>
                   <Link
                     to="/dashboard?tab=messages"
                     className="px-4 py-2 bg-white text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition"
                   >
-                    Contacter le Support
+                    {t('dashboard.resources.quickHelp.contact')}
                   </Link>
                 </div>
               </div>

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useTranslation } from 'react-i18next';
 import { api, endpoints } from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const ProfileSection = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -64,13 +66,13 @@ const ProfileSection = () => {
       {/* Profile Header */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">👤 Mon Profil</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('profilePage.header')}</h2>
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
             >
-              ✏️ Modifier
+              {t('profilePage.edit')}
             </button>
           )}
         </div>
@@ -80,7 +82,7 @@ const ProfileSection = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom complet
+                  {t('profilePage.fields.fullName')}
                 </label>
                 <input
                   type="text"
@@ -93,7 +95,7 @@ const ProfileSection = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Téléphone
+                  {t('profilePage.fields.phone')}
                 </label>
                 <input
                   type="tel"
@@ -105,7 +107,7 @@ const ProfileSection = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Pays
+                  {t('profilePage.fields.country')}
                 </label>
                 <input
                   type="text"
@@ -117,7 +119,7 @@ const ProfileSection = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ville
+                  {t('profilePage.fields.city')}
                 </label>
                 <input
                   type="text"
@@ -129,7 +131,7 @@ const ProfileSection = () => {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Adresse
+                  {t('profilePage.fields.address')}
                 </label>
                 <textarea
                   name="address"
@@ -147,33 +149,33 @@ const ProfileSection = () => {
                 onClick={() => setIsEditing(false)}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
               >
-                Annuler
+                {t('profilePage.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={updateProfileMutation.isLoading}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
               >
-                {updateProfileMutation.isLoading ? 'Enregistrement...' : 'Enregistrer'}
+                {updateProfileMutation.isLoading ? t('profilePage.saving') : t('profilePage.save')}
               </button>
             </div>
           </form>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-sm text-gray-500">Nom complet</p>
+              <p className="text-sm text-gray-500">{t('profilePage.fields.fullName')}</p>
               <p className="text-base font-medium text-gray-900">{profile?.full_name || '-'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Email</p>
+              <p className="text-sm text-gray-500">{t('profilePage.fields.email')}</p>
               <p className="text-base font-medium text-gray-900">{profile?.email || '-'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Téléphone</p>
+              <p className="text-sm text-gray-500">{t('profilePage.fields.phone')}</p>
               <p className="text-base font-medium text-gray-900">{profile?.phone || '-'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Rôle</p>
+              <p className="text-sm text-gray-500">{t('profilePage.fields.role')}</p>
               <p className="text-base font-medium text-gray-900">
                 <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                   {profile?.role || 'farmer'}
@@ -181,15 +183,15 @@ const ProfileSection = () => {
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Pays</p>
+              <p className="text-sm text-gray-500">{t('profilePage.fields.country')}</p>
               <p className="text-base font-medium text-gray-900">{profile?.country || '-'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Ville</p>
+              <p className="text-sm text-gray-500">{t('profilePage.fields.city')}</p>
               <p className="text-base font-medium text-gray-900">{profile?.city || '-'}</p>
             </div>
             <div className="md:col-span-2">
-              <p className="text-sm text-gray-500">Adresse</p>
+              <p className="text-sm text-gray-500">{t('profilePage.fields.address')}</p>
               <p className="text-base font-medium text-gray-900">{profile?.address || '-'}</p>
             </div>
           </div>
@@ -198,10 +200,10 @@ const ProfileSection = () => {
 
       {/* Account Info */}
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">💼 Informations du Compte</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('profilePage.accountInfo')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <p className="text-sm text-gray-500">Statut KYC</p>
+            <p className="text-sm text-gray-500">{t('profilePage.kycStatus')}</p>
             <p className="text-base font-medium">
               <span className={`px-3 py-1 rounded-full text-sm ${
                 profile?.kyc_status === 'verified' ? 'bg-green-100 text-green-800' :
@@ -213,9 +215,9 @@ const ProfileSection = () => {
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Solde GYT</p>
+            <p className="text-sm text-gray-500">{t('profilePage.balance')}</p>
             <p className="text-base font-bold text-green-600">
-              {parseFloat(profile?.gyt_balance || 0).toFixed(2)} GYT
+              {parseFloat(profile?.gyt_balance || 0).toFixed(2)} DOLLAR
             </p>
           </div>
         </div>

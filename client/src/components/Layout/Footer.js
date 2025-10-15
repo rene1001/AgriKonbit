@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   FiFacebook, 
   FiTwitter, 
@@ -11,26 +12,27 @@ import {
 } from 'react-icons/fi';
 
 const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
     platform: [
-      { name: 'How it Works', href: '/how-it-works' },
-      { name: 'For Farmers', href: '/farmers' },
-      { name: 'For Investors', href: '/investors' },
-      { name: 'Marketplace', href: '/marketplace' },
+      { name: t('footer.howItWorks'), href: '/how-it-works' },
+      { name: t('footer.forFarmers'), href: '/farmers' },
+      { name: t('footer.forInvestors'), href: '/investors' },
+      { name: t('footer.marketplace'), href: '/marketplace' },
     ],
     support: [
-      { name: 'Help Center', href: '/help' },
-      { name: 'Contact Us', href: '/contact' },
-      { name: 'Terms of Service', href: '/terms' },
-      { name: 'Privacy Policy', href: '/privacy' },
+      { name: t('footer.helpCenter'), href: '/help' },
+      { name: t('footer.contactUs'), href: '/contact' },
+      { name: t('footer.terms'), href: '/terms' },
+      { name: t('footer.privacy'), href: '/privacy' },
     ],
     company: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Careers', href: '/careers' },
-      { name: 'Press', href: '/press' },
-      { name: 'Blog', href: '/blog' },
+      { name: t('footer.aboutUs'), href: '/about' },
+      { name: t('footer.careers'), href: '/careers' },
+      { name: t('footer.press'), href: '/press' },
+      { name: t('footer.blog'), href: '/blog' },
     ],
   };
 
@@ -47,7 +49,7 @@ const Footer = () => {
               <span className="ml-2 text-xl font-bold">AgriKonbit</span>
             </div>
             <p className="text-gray-400 mb-4">
-              Connecting farmers with investors to build a sustainable agricultural future through blockchain technology.
+              {t('footer.companyDescription')}
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -67,7 +69,7 @@ const Footer = () => {
 
           {/* Platform Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Platform</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.platform')}</h3>
             <ul className="space-y-2">
               {footerLinks.platform.map((link) => (
                 <li key={link.name}>
@@ -84,7 +86,7 @@ const Footer = () => {
 
           {/* Support Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Support</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.support')}</h3>
             <ul className="space-y-2">
               {footerLinks.support.map((link) => (
                 <li key={link.name}>
@@ -101,7 +103,7 @@ const Footer = () => {
 
           {/* Company Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Company</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.company')}</h3>
             <ul className="space-y-2">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -138,10 +140,10 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-6 md:mt-8 pt-6 md:pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © {currentYear} AgriKonbit. All rights reserved.
+            © {currentYear} AgriKonbit. {t('footer.rights')}
           </p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <span className="text-gray-400 text-sm">Powered by</span>
+            <span className="text-gray-400 text-sm">{t('footer.poweredBy')}</span>
             <div className="flex items-center space-x-2">
               <span className="text-xs bg-primary-600 px-2 py-1 rounded">Polygon</span>
               <span className="text-xs bg-secondary-600 px-2 py-1 rounded">Stripe</span>

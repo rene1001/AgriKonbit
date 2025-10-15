@@ -20,6 +20,7 @@ const NotificationsSection = () => {
       onSuccess: () => {
         queryClient.invalidateQueries(['notifications']);
         queryClient.invalidateQueries(['notifications-all']);
+        queryClient.invalidateQueries(['notifications-unread-count']);
       }
     }
   );
@@ -32,6 +33,20 @@ const NotificationsSection = () => {
       onSuccess: () => {
         queryClient.invalidateQueries(['notifications']);
         queryClient.invalidateQueries(['notifications-all']);
+        queryClient.invalidateQueries(['notifications-unread-count']);
+      }
+    }
+  );
+
+  const deleteMutation = useMutation(
+    async (id) => {
+      await api.delete(endpoints.notifications.delete(id));
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['notifications-all']);
+        queryClient.invalidateQueries(['notifications']);
+        queryClient.invalidateQueries(['notifications-unread-count']);
       }
     }
   );
@@ -45,12 +60,16 @@ const NotificationsSection = () => {
         return '❌';
       case 'new_investment':
         return '💰';
+      case 'new_message':
+        return '💬';
       case 'order_received':
         return '📦';
       case 'order_update':
         return '🔄';
       case 'payment_received':
         return '💵';
+      case 'announcement':
+        return '📢';
       default:
         return '🔔';
     }
@@ -112,14 +131,22 @@ const NotificationsSection = () => {
                       })}
                     </p>
                   </div>
-                  {!notification.is_read && (
+                  <div className="flex items-center gap-3">
+                    {!notification.is_read && (
+                      <button
+                        onClick={() => markAsReadMutation.mutate(notification.id)}
+                        className="px-3 py-1 text-sm text-green-600 hover:text-green-700 font-medium"
+                      >
+                        Marquer comme lu
+                      </button>
+                    )}
                     <button
-                      onClick={() => markAsReadMutation.mutate(notification.id)}
-                      className="px-3 py-1 text-sm text-green-600 hover:text-green-700 font-medium"
+                      onClick={() => deleteMutation.mutate(notification.id)}
+                      className="px-3 py-1 text-sm text-red-600 hover:text-red-700 font-medium"
                     >
-                      Marquer comme lu
+                      Supprimer
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>

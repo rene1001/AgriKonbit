@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { api, endpoints } from '../utils/api';
 import toast from 'react-hot-toast';
 
 const Checkout = () => {
+  const { t } = useTranslation();
   const { items, clearCart, getTotalPrice } = useCart();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -38,13 +40,13 @@ const Checkout = () => {
         shippingAddress: { line1: '123 Demo St', city: 'City', country: 'US' }
       };
       const orderRes = await api.post(endpoints.orders.create, orderPayload);
-      if (!orderRes.data.success) throw new Error('Order creation failed');
+      if (!orderRes.data.success) throw new Error(t('checkoutPage.createFailed'));
 
       clearCart();
-      toast.success('Order placed successfully');
+      toast.success(t('checkoutPage.success'));
       navigate('/dashboard');
     } catch (e) {
-      toast.error(e?.response?.data?.message || e.message || 'Checkout failed');
+      toast.error(e?.response?.data?.message || e.message || t('checkoutPage.failed'));
     } finally {
       setLoading(false);
     }
@@ -52,36 +54,36 @@ const Checkout = () => {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-5xl mx-auto p-6">Your cart is empty.</div>
+      <div className="max-w-5xl mx-auto p-6">{t('checkoutPage.empty')}</div>
     );
   }
 
   return (
     <div className="py-10 bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold mb-6">Checkout</h1>
+        <h1 className="text-2xl font-bold mb-6">{t('checkoutPage.title')}</h1>
         <div className="bg-white p-4 rounded-lg border">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex justify-between">
-              <div>Total (USD)</div>
+              <div>{t('checkoutPage.totalsUSD')}</div>
               <div className="font-semibold">${getTotalPrice('usd').toFixed(2)}</div>
             </div>
             <div className="flex justify-between">
-              <div>Total (GYT)</div>
-              <div className="font-semibold">{Number(totalGyt).toFixed(2)} GYT</div>
+              <div>{t('checkoutPage.totalsGYT')}</div>
+              <div className="font-semibold">{Number(totalGyt).toFixed(2)} DOLLAR</div>
             </div>
             <div className="flex justify-between">
-              <div>Votre solde GYT</div>
-              <div className="font-semibold">{gytBalance === null ? '...' : `${Number(gytBalance).toFixed(2)} GYT`}</div>
+              <div>{t('checkoutPage.yourBalance')}</div>
+              <div className="font-semibold">{gytBalance === null ? '...' : `${Number(gytBalance).toFixed(2)} DOLLAR`}</div>
             </div>
           </div>
           {gytBalance !== null && gytBalance < totalGyt && (
-            <div className="mt-3 text-sm text-red-600">Solde insuffisant. Veuillez déposer des GYT avant de poursuivre.</div>
+            <div className="mt-3 text-sm text-red-600">{t('checkoutPage.insufficient')}</div>
           )}
           <button className={`btn btn-primary mt-4 w-full ${gytBalance !== null && gytBalance < totalGyt ? 'opacity-60 pointer-events-none' : ''}`} onClick={handleCheckout} disabled={loading || (gytBalance !== null && gytBalance < totalGyt)}>
-            {loading ? 'Traitement…' : 'Payer avec GYT Wallet'}
+            {loading ? t('checkoutPage.processing') : t('checkoutPage.payButton')}
           </button>
-          <div className="text-xs text-gray-500 mt-2">Astuce: Déposez des GYT sur votre Tableau de bord.</div>
+          <div className="text-xs text-gray-500 mt-2">{t('checkoutPage.tip')}</div>
         </div>
       </div>
     </div>

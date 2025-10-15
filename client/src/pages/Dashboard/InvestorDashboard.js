@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from 'react-query';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useQuery, useQueryClient } from 'react-query';
 import { api, endpoints } from '../../utils/api';
 import toast from 'react-hot-toast';
+import MessagingSection from '../../components/Dashboard/MessagingSection';
 
 // Icônes SVG simples
 const ChartBarIcon = ({ className }) => (
@@ -80,8 +82,18 @@ const ShareIcon = ({ className }) => (
 );
 
 const InvestorDashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'overview');
+
+  // Update activeTab if location state changes
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
   const [depositAmount, setDepositAmount] = useState(100);
   const [withdrawAmount, setWithdrawAmount] = useState(0);
   const [investModal, setInvestModal] = useState({ open: false, projectId: null, amount: 10 });
@@ -139,6 +151,28 @@ const InvestorDashboard = () => {
     enabled: !!me
   });
 
+  const onMarkOne = async (id) => {
+    try {
+      await api.patch(endpoints.notifications.markRead(id));
+      queryClient.invalidateQueries(['notifications-unread-count']);
+      queryClient.invalidateQueries(['notifications-recent']);
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  const onDeleteOne = async (id) => {
+    try {
+      await api.delete(endpoints.notifications.delete(id));
+      queryClient.invalidateQueries(['notifications']);
+      queryClient.invalidateQueries(['notifications-unread-count']);
+      queryClient.invalidateQueries(['notifications-recent']);
+      toast.success(t('notifications.deleted', 'Notification supprimée'));
+    } catch (e) {
+      toast.error(t('common.operationFailed', "Échec de l'opération"));
+    }
+  };
+
   const { data: returnsData, refetch: refetchReturns } = useQuery(['returns'], async () => {
     const res = await api.get(endpoints.returns.list);
     return res.data.data.returns || [];
@@ -173,7 +207,7 @@ const InvestorDashboard = () => {
 
   const afterDeposit = async (amount) => {
     await Promise.all([refetchMe(), refetchTx()]);
-    toast.success(`Dépôt de ${amount} GYT effectué`);
+    toast.success(t('investor.deposit.success', 'Dépôt de {{amount}} DOLLAR effectué', { amount }));
   };
 
   const handleStripeDeposit = async () => {
@@ -194,7 +228,7 @@ const InvestorDashboard = () => {
         await afterDeposit(amount);
       }
     } catch (e) {
-      toast.error('Échec du dépôt Stripe');
+      toast.error(t('investor.deposit.stripeError', 'Échec du dépôt Stripe'));
     }
   };
 
@@ -216,7 +250,7 @@ const InvestorDashboard = () => {
         await afterDeposit(amount);
       }
     } catch (e) {
-      toast.error('Échec du dépôt PayPal');
+      toast.error(t('investor.deposit.paypalError', 'Échec du dépôt PayPal'));
     }
   };
 
@@ -233,7 +267,7 @@ const InvestorDashboard = () => {
         await afterDeposit(amount);
       }
     } catch (e) {
-      toast.error('Échec du dépôt MetaMask');
+      toast.error(t('investor.deposit.metamaskError', 'Échec du dépôt MetaMask'));
     }
   };
 
@@ -241,7 +275,7 @@ const InvestorDashboard = () => {
     try {
       const amount = Number(withdrawAmount);
       if (amount <= 0 || amount > (me?.gytBalance || 0)) {
-        toast.error('Montant invalide');
+        toast.error(t('common.invalidAmount', 'Montant invalide'));
         return;
       }
 
@@ -260,11 +294,11 @@ const InvestorDashboard = () => {
 
       if (res.data.success) {
         await refetchMe();
-        toast.success(`Retrait de ${amount} GYT effectué`);
+        toast.success(t('investor.withdraw.success', 'Retrait de {{amount}} DOLLAR effectué', { amount }));
         setWithdrawAmount(0);
       }
     } catch (e) {
-      toast.error('Échec du retrait');
+      toast.error(t('investor.withdraw.error', 'Échec du retrait'));
     }
   };
 
@@ -278,11 +312,11 @@ const InvestorDashboard = () => {
       });
 
       if (res.data.success) {
-        toast.success('Investissement effectué avec succès!');
+        toast.success(t('investor.invest.success', 'Investissement effectué avec succès!'));
         await Promise.all([refetchMe(), refetchTx()]);
       }
     } catch (e) {
-      toast.error('Échec de l\'investissement');
+      toast.error(t('investor.invest.error', "Échec de l'investissement"));
     }
   };
 
@@ -323,7 +357,7 @@ const InvestorDashboard = () => {
             <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Retirer les gains</h3>
               <div className="space-y-3">
-                <label className="block text-sm text-gray-700">Montant (GYT)</label>
+                <label className="block text-sm text-gray-700">Montant (DOLLAR)</label>
                 <input
                   type="number"
                   min={1}
@@ -466,9 +500,27 @@ const InvestorDashboard = () => {
                   </div>
                   <div className="max-h-64 overflow-y-auto">
                     {notifications?.map((notif, idx) => (
-                      <div key={idx} className="p-3 border-b hover:bg-gray-50">
-                        <p className="text-sm text-gray-700">{notif.message}</p>
-                        <p className="text-xs text-gray-500 mt-1">{notif.created_at}</p>
+                      <div key={idx} className="p-3 border-b hover:bg-gray-50 flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-700">{notif.message}</p>
+                          <p className="text-xs text-gray-500 mt-1">{notif.created_at}</p>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          {!notif.is_read && (
+                            <button 
+                              className="text-xs text-blue-600 hover:underline whitespace-nowrap" 
+                              onClick={() => onMarkOne(notif.id)}
+                            >
+                              Lire
+                            </button>
+                          )}
+                          <button 
+                            className="text-xs text-red-600 hover:underline whitespace-nowrap" 
+                            onClick={() => onDeleteOne(notif.id)}
+                          >
+                            Suppr.
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -513,7 +565,7 @@ const InvestorDashboard = () => {
               <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100">Solde GYT</p>
+                    <p className="text-green-100">Solde DOLLAR</p>
                     <p className="text-3xl font-bold">{me?.gytBalance || 0}</p>
                     <p className="text-sm text-green-100">≈ ${me?.gytBalance || 0} USD</p>
                   </div>
@@ -526,7 +578,7 @@ const InvestorDashboard = () => {
                   <div>
                     <p className="text-gray-500">Total Investi</p>
                     <p className="text-2xl font-bold text-gray-900">{Number(stats?.overview?.total_invested_gyt || 0).toFixed(2)}</p>
-                    <p className="text-sm text-gray-500">GYT</p>
+                    <p className="text-sm text-gray-500">DOLLAR</p>
                   </div>
                   <TrendingUpIcon className="h-8 w-8 text-blue-500" />
                 </div>
@@ -561,7 +613,7 @@ const InvestorDashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Acheter des GYT
+                    Acheter des DOLLAR
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -597,7 +649,7 @@ const InvestorDashboard = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Retirer des GYT
+                    Retirer des DOLLAR
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -605,7 +657,7 @@ const InvestorDashboard = () => {
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       value={withdrawAmount}
                       onChange={(e) => setWithdrawAmount(e.target.value)}
-                      placeholder="Montant en GYT"
+                      placeholder="Montant en DOLLAR"
                       max={me?.gytBalance || 0}
                       min="0"
                     />
@@ -619,7 +671,7 @@ const InvestorDashboard = () => {
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Disponible: {me?.gytBalance || 0} GYT
+                    Disponible: {me?.gytBalance || 0} DOLLAR
                   </p>
                 </div>
               </div>
@@ -705,7 +757,7 @@ const InvestorDashboard = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Montant investi:</span>
-                      <span className="font-medium">{investment.amount_gyt} GYT</span>
+                      <span className="font-medium">{investment.amount_gyt} DOLLAR</span>
                     </div>
 
                     <div className="flex justify-between">
@@ -825,12 +877,12 @@ const InvestorDashboard = () => {
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Budget:</span>
-                        <span className="font-medium">{project.budget_gyt} GYT</span>
+                        <span className="font-medium">{project.budget_gyt} DOLLAR</span>
                       </div>
 
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Financé:</span>
-                        <span className="font-medium">{project.funded_amount_gyt} GYT</span>
+                        <span className="font-medium">{project.funded_amount_gyt} DOLLAR</span>
                       </div>
 
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -906,7 +958,7 @@ const InvestorDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="bg-white rounded-xl p-6 shadow-sm border">
                 <h3 className="font-semibold text-gray-900 mb-4">💰 Rendements Disponibles</h3>
-                <div className="text-3xl font-bold text-green-600 mb-2">{availableGYT.toFixed(2)} GYT</div>
+                <div className="text-3xl font-bold text-green-600 mb-2">{availableGYT.toFixed(2)} DOLLAR</div>
                 <p className="text-sm text-gray-500 mb-4">Prêt à être retiré</p>
                 <button
                   className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
@@ -918,7 +970,7 @@ const InvestorDashboard = () => {
 
               <div className="bg-white rounded-xl p-6 shadow-sm border">
                 <h3 className="font-semibold text-gray-900 mb-4">⏳ Rendements en Cours</h3>
-                <div className="text-3xl font-bold text-blue-600 mb-2">{inProgressGYT.toFixed(2)} GYT</div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">{inProgressGYT.toFixed(2)} DOLLAR</div>
                 <p className="text-sm text-gray-500 mb-4">Paiement à venir</p>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${inProgressPct}%` }}></div>
@@ -963,7 +1015,7 @@ const InvestorDashboard = () => {
                             </span>
                           </td>
                           <td className="py-3 px-4 text-sm font-medium">
-                            {ret.type === 'financial' ? `+${ret.amount_gyt} GYT` : `${ret.quantity} ${ret.unit || ''}`}
+                            {ret.type === 'financial' ? `+${ret.amount_gyt} DOLLAR` : `${ret.quantity} ${ret.unit || ''}`}
                           </td>
                           <td className="py-3 px-4 text-sm text-gray-600">{new Date(ret.created_at).toLocaleDateString('fr-FR')}</td>
                           <td className="py-3 px-4 text-sm">
@@ -1004,64 +1056,7 @@ const InvestorDashboard = () => {
 
         {activeTab === 'communication' && (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Communication & Engagement</h2>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl p-6 shadow-sm border">
-                <h3 className="font-semibold text-gray-900 mb-4">📨 Messages des Agriculteurs</h3>
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">"Récolte excellente cette saison! Merci pour votre soutien. 🌾"</p>
-                    <p className="text-xs text-gray-500 mt-1">Jean Dupont - Il y a 2 jours</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">"Photos de la plantation envoyées dans la galerie. 📸"</p>
-                    <p className="text-xs text-gray-500 mt-1">Marie Martin - Il y a 5 jours</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">"Les tomates poussent bien grâce à vos investissements! 🍅"</p>
-                    <p className="text-xs text-gray-500 mt-1">Pierre Durand - Il y a 1 semaine</p>
-                  </div>
-                </div>
-                <button className="w-full mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  Voir tous les messages
-                </button>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-sm border">
-                <h3 className="font-semibold text-gray-900 mb-4">🎯 Support & Assistance</h3>
-                <div className="space-y-3">
-                  <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
-                    <ChatBubbleLeftRightIcon className="h-4 w-4" />
-                    Chat en direct
-                  </button>
-                  <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
-                    <QuestionMarkCircleIcon className="h-4 w-4" />
-                    FAQ
-                  </button>
-                  <button className="w-full bg-green-100 text-green-700 px-4 py-2 rounded-lg hover:bg-green-200 transition-colors flex items-center justify-center gap-2">
-                    <ShareIcon className="h-4 w-4" />
-                    Partager mes investissements
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border">
-              <h3 className="font-semibold text-gray-900 mb-4">📰 Newsletters & Témoignages</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">Newsletter Septembre 2024</h4>
-                  <p className="text-sm text-gray-600 mb-3">Découvrez les dernières nouvelles de nos agriculteurs partenaires...</p>
-                  <button className="text-blue-600 text-sm hover:underline">Lire la suite</button>
-                </div>
-                <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">Témoignage: Culture de Mangues</h4>
-                  <p className="text-sm text-gray-600 mb-3">"Grâce aux investisseurs, j'ai pu moderniser mon exploitation..."</p>
-                  <button className="text-blue-600 text-sm hover:underline">Voir la vidéo</button>
-                </div>
-              </div>
-            </div>
+            <MessagingSection />
           </div>
         )}
 
@@ -1156,7 +1151,7 @@ const InvestorDashboard = () => {
                   <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-2xl leading-tight">
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
-                    <option value="GYT">GYT</option>
+                    <option value="GYT">DOLLAR</option>
                   </select>
                 </div>
               </div>
@@ -1170,7 +1165,7 @@ const InvestorDashboard = () => {
             <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Confirmer l'investissement</h3>
               <div className="space-y-3">
-                <label className="block text-sm text-gray-700">Montant (min 10 GYT)</label>
+                <label className="block text-sm text-gray-700">Montant (min 10 DOLLAR)</label>
                 <input
                   type="number"
                   min={10}
@@ -1178,7 +1173,7 @@ const InvestorDashboard = () => {
                   onChange={(e) => setInvestModal({ ...investModal, amount: Number(e.target.value) })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
-                <div className="text-sm text-gray-500">Solde disponible: {me?.gytBalance || 0} GYT</div>
+                <div className="text-sm text-gray-500">Solde disponible: {me?.gytBalance || 0} DOLLAR</div>
               </div>
               <div className="flex justify-end gap-2 mt-6">
                 <button
@@ -1192,7 +1187,7 @@ const InvestorDashboard = () => {
                   onClick={async () => {
                     const amt = Number(investModal.amount);
                     if (!investModal.projectId || isNaN(amt) || amt < 10) {
-                      toast.error('Montant invalide (minimum 10 GYT)');
+                      toast.error('Montant invalide (minimum 10 DOLLAR)');
                       return;
                     }
                     await handleInvestInProject(investModal.projectId, amt);

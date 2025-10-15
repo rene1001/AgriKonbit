@@ -221,7 +221,7 @@ router.get('/orders/:id', authenticateToken, requireFarmer, async (req, res) => 
 
 // Update order status (farmer can update their orders)
 router.patch('/orders/:id/status', authenticateToken, requireFarmer, [
-  body('status').isIn(['preparing', 'shipped', 'delivered'])
+  body('status').isIn(['shipped', 'delivered', 'cancelled'])
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -550,238 +550,268 @@ router.get('/activities', authenticateToken, requireFarmer, async (req, res) => 
   }
 });
 
-// Get farmer's orders
-router.get('/orders', authenticateToken, requireFarmer, async (req, res) => {
-  try {
-    const { status, page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
+// Routes dupliquées supprimées - voir lignes 93-294 pour les routes /orders
 
-    let whereClause = 'WHERE p.farmer_id = ?';
-    let params = [req.user.id];
+// ============================================
+// NOUVELLES ROUTES - Demandes de Retrait et Mises à Jour de Projet
+// ============================================
 
-    if (status) {
-      whereClause += ' AND o.status = ?';
-      params.push(status);
-    }
-
-    const orders = await query(`
-      SELECT DISTINCT
-        o.*,
-        u.full_name as customer_name,
-        COUNT(oi.id) as item_count
-      FROM orders o
-      JOIN order_items oi ON o.id = oi.order_id
-      JOIN products p ON oi.product_id = p.id
-      JOIN users u ON o.user_id = u.id
-      ${whereClause}
-      GROUP BY o.id
-      ORDER BY o.created_at DESC
-      LIMIT ? OFFSET ?
-    `, [...params, parseInt(limit), offset]);
-
-    // Get total count
-    const [countResult] = await query(`
-      SELECT COUNT(DISTINCT o.id) as total
-      FROM orders o
-      JOIN order_items oi ON o.id = oi.order_id
-      JOIN products p ON oi.product_id = p.id
-      ${whereClause}
-    `, params);
-
-    res.json({
-      success: true,
-      data: {
-        orders,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: countResult.total,
-          pages: Math.ceil(countResult.total / limit)
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Get farmer orders error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch orders'
-    });
-  }
-});
-
-// Get order details for farmer
-router.get('/orders/:id', authenticateToken, requireFarmer, async (req, res) => {
+// POST /api/farmer/projects/:id/request-withdrawal - Demander le retrait des fonds d'un projet
+router.post('/projects/:id/request-withdrawal', authenticateToken, requireFarmer, async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Get order with customer info
-    const orders = await query(`
-      SELECT DISTINCT
-        o.*,
-        u.full_name as customer_name,
-        u.email as customer_email
-      FROM orders o
-      JOIN order_items oi ON o.id = oi.order_id
-      JOIN products p ON oi.product_id = p.id
-      JOIN users u ON o.user_id = u.id
-      WHERE o.id = ? AND p.farmer_id = ?
-    `, [id, req.user.id]);
-
-    if (orders.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
+    
+    // Vérifier que le projet appartient à l'agriculteur
+    const [projects] = await query(
+      'SELECT * FROM projects WHERE id = ? AND farmer_id = ?', 
+      [id, req.user.id]
+    );
+    
+    if (!projects || projects.length === 0) {
+      return res.status(404).json({ success: false, message: 'Projet non trouvé' });
+    }
+    
+    const project = projects[0];
+    
+    // Vérifier que le projet est complètement financé
+    if (parseFloat(project.funded_amount_gyt) < parseFloat(project.budget_gyt)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Le projet doit être complètement financé avant de demander un retrait' 
       });
     }
-
-    const order = orders[0];
-
-    // Get order items with product details (only farmer's products)
-    const orderItems = await query(`
-      SELECT 
-        oi.*,
-        p.name as product_name,
-        p.description as product_description,
-        p.images as product_images
-      FROM order_items oi
-      JOIN products p ON oi.product_id = p.id
-      WHERE oi.order_id = ? AND p.farmer_id = ?
-    `, [id, req.user.id]);
-
-    res.json({
-      success: true,
-      data: {
-        ...order,
-        items: orderItems
-      }
+    
+    // Vérifier que les fonds n'ont pas déjà été retirés
+    if (project.funds_withdrawn) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Les fonds de ce projet ont déjà été retirés' 
+      });
+    }
+    
+    // Vérifier qu'il n'y a pas déjà une demande en attente
+    const [existing] = await query(
+      'SELECT * FROM project_withdrawal_requests WHERE project_id = ? AND status = "pending"', 
+      [id]
+    );
+    
+    if (existing && existing.length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Une demande de retrait est déjà en attente pour ce projet' 
+      });
+    }
+    
+    // Créer la demande
+    const result = await query(`
+      INSERT INTO project_withdrawal_requests (project_id, farmer_id, amount_gyt, status)
+      VALUES (?, ?, ?, 'pending')
+    `, [id, req.user.id, project.funded_amount_gyt]);
+    
+    res.status(201).json({ 
+      success: true, 
+      message: 'Demande de retrait envoyée avec succès. Elle sera examinée par un administrateur.',
+      data: { requestId: result.insertId } 
     });
-
   } catch (error) {
-    console.error('Get farmer order error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch order'
-    });
+    console.error('Request withdrawal error:', error);
+    res.status(500).json({ success: false, message: 'Failed to request withdrawal' });
   }
 });
 
-// Update order status (farmer side)
-router.patch('/orders/:id/status', authenticateToken, requireFarmer, [
-  body('status').isIn(['shipped', 'delivered', 'cancelled'])
+// GET /api/farmer/projects/:id/withdrawal-requests - Voir les demandes de retrait d'un projet
+router.get('/projects/:id/withdrawal-requests', authenticateToken, requireFarmer, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Vérifier que le projet appartient à l'agriculteur
+    const [projects] = await query(
+      'SELECT * FROM projects WHERE id = ? AND farmer_id = ?', 
+      [id, req.user.id]
+    );
+    
+    if (!projects || projects.length === 0) {
+      return res.status(404).json({ success: false, message: 'Projet non trouvé' });
+    }
+    
+    const requests = await query(`
+      SELECT 
+        pwr.*,
+        approver.full_name as approved_by_name
+      FROM project_withdrawal_requests pwr
+      LEFT JOIN users approver ON pwr.approved_by = approver.id
+      WHERE pwr.project_id = ?
+      ORDER BY pwr.created_at DESC
+    `, [id]);
+    
+    res.json({ success: true, data: requests });
+  } catch (error) {
+    console.error('Get withdrawal requests error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch withdrawal requests' });
+  }
+});
+
+// POST /api/farmer/projects/:id/updates - Créer une mise à jour de projet
+router.post('/projects/:id/updates', authenticateToken, requireFarmer, [
+  body('title').trim().isLength({ min: 5, max: 255 }).withMessage('Le titre doit contenir entre 5 et 255 caractères'),
+  body('content').trim().isLength({ min: 20 }).withMessage('Le contenu doit contenir au moins 20 caractères'),
+  body('isPublic').optional().isBoolean()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
     }
 
     const { id } = req.params;
-    const { status } = req.body;
-
-    // Check if order exists and farmer has products in it
-    const orders = await query(`
-      SELECT DISTINCT o.id, o.status, o.total_gyt
-      FROM orders o
-      JOIN order_items oi ON o.id = oi.order_id
-      JOIN products p ON oi.product_id = p.id
-      WHERE o.id = ? AND p.farmer_id = ?
-    `, [id, req.user.id]);
-
-    if (orders.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
+    const { title, content, images, isPublic = true } = req.body;
+    
+    // Vérifier que le projet appartient à l'agriculteur
+    const [projects] = await query(
+      'SELECT * FROM projects WHERE id = ? AND farmer_id = ?', 
+      [id, req.user.id]
+    );
+    
+    if (!projects || projects.length === 0) {
+      return res.status(404).json({ success: false, message: 'Projet non trouvé' });
     }
-
-    const order = orders[0];
-
-    // Validate status transitions
-    const validTransitions = {
-      'paid': ['shipped', 'cancelled'],
-      'shipped': ['delivered'],
-      'pending': ['cancelled']
-    };
-
-    if (!validTransitions[order.status] || !validTransitions[order.status].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot change status from ${order.status} to ${status}`
-      });
-    }
-
-    await transaction(async (connection) => {
-      // Update order status
-      await connection.execute(
-        'UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [status, id]
-      );
-
-      // If delivered, credit farmer's wallet
-      if (status === 'delivered') {
-        // Get farmer's share of the order (all items from this farmer)
-        const farmerItems = await connection.execute(`
-          SELECT SUM(oi.total_gyt) as farmer_total_gyt
-          FROM order_items oi
-          JOIN products p ON oi.product_id = p.id
-          WHERE oi.order_id = ? AND p.farmer_id = ?
-        `, [id, req.user.id]);
-
-        const farmerTotalGyt = farmerItems[0][0]?.farmer_total_gyt || 0;
-
-        if (farmerTotalGyt > 0) {
-          // Credit farmer's wallet
-          await connection.execute(`
-            UPDATE user_wallets 
-            SET gyt_balance = gyt_balance + ?,
-                total_earned_gyt = total_earned_gyt + ?,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE user_id = ?
-          `, [farmerTotalGyt, farmerTotalGyt, req.user.id]);
-
-          // Create transaction record
-          await connection.execute(`
-            INSERT INTO transactions (
-              user_id, type, amount_gyt, status, description, reference_type, reference_id
-            ) VALUES (?, 'payment', ?, 'completed', ?, 'order', ?)
-          `, [req.user.id, farmerTotalGyt, `Paiement commande #${order.id}`, id]);
-        }
-      }
-
-      // If cancelled, restore product stock
-      if (status === 'cancelled') {
-        const orderItems = await connection.execute(`
-          SELECT oi.product_id, oi.quantity
-          FROM order_items oi
-          JOIN products p ON oi.product_id = p.id
-          WHERE oi.order_id = ? AND p.farmer_id = ?
-        `, [id, req.user.id]);
-
-        for (const item of orderItems[0]) {
-          await connection.execute(
-            'UPDATE products SET stock = stock + ? WHERE id = ?',
-            [item.quantity, item.product_id]
-          );
-        }
-      }
+    
+    const result = await query(`
+      INSERT INTO project_updates (project_id, title, content, images, is_public, created_at)
+      VALUES (?, ?, ?, ?, ?, NOW())
+    `, [id, title, content, JSON.stringify(images || []), isPublic]);
+    
+    res.status(201).json({ 
+      success: true, 
+      message: 'Mise à jour publiée avec succès', 
+      data: { updateId: result.insertId } 
     });
-
-    res.json({
-      success: true,
-      message: 'Order status updated successfully'
-    });
-
   } catch (error) {
-    console.error('Update farmer order status error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update order status'
-    });
+    console.error('Create project update error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create project update' });
+  }
+});
+
+// GET /api/farmer/projects/:id/updates - Voir toutes les mises à jour d'un projet
+router.get('/projects/:id/updates', authenticateToken, requireFarmer, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Vérifier que le projet appartient à l'agriculteur
+    const [projects] = await query(
+      'SELECT * FROM projects WHERE id = ? AND farmer_id = ?', 
+      [id, req.user.id]
+    );
+    
+    if (!projects || projects.length === 0) {
+      return res.status(404).json({ success: false, message: 'Projet non trouvé' });
+    }
+    
+    const updates = await query(`
+      SELECT * FROM project_updates 
+      WHERE project_id = ?
+      ORDER BY created_at DESC
+    `, [id]);
+    
+    res.json({ success: true, data: updates });
+  } catch (error) {
+    console.error('Get project updates error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch project updates' });
+  }
+});
+
+// PUT /api/farmer/projects/:projectId/updates/:updateId - Modifier une mise à jour
+router.put('/projects/:projectId/updates/:updateId', authenticateToken, requireFarmer, [
+  body('title').optional().trim().isLength({ min: 5, max: 255 }),
+  body('content').optional().trim().isLength({ min: 20 }),
+  body('isPublic').optional().isBoolean()
+], async (req, res) => {
+  try {
+    const { projectId, updateId } = req.params;
+    const { title, content, images, isPublic } = req.body;
+    
+    // Vérifier que le projet appartient à l'agriculteur
+    const [projects] = await query(
+      'SELECT * FROM projects WHERE id = ? AND farmer_id = ?', 
+      [projectId, req.user.id]
+    );
+    
+    if (!projects || projects.length === 0) {
+      return res.status(404).json({ success: false, message: 'Projet non trouvé' });
+    }
+    
+    // Construire la requête de mise à jour
+    const updates = [];
+    const params = [];
+    
+    if (title) {
+      updates.push('title = ?');
+      params.push(title);
+    }
+    if (content) {
+      updates.push('content = ?');
+      params.push(content);
+    }
+    if (images !== undefined) {
+      updates.push('images = ?');
+      params.push(JSON.stringify(images));
+    }
+    if (isPublic !== undefined) {
+      updates.push('is_public = ?');
+      params.push(isPublic);
+    }
+    
+    if (updates.length === 0) {
+      return res.status(400).json({ success: false, message: 'Aucune modification fournie' });
+    }
+    
+    params.push(updateId, projectId);
+    
+    const result = await query(`
+      UPDATE project_updates 
+      SET ${updates.join(', ')}, updated_at = NOW()
+      WHERE id = ? AND project_id = ?
+    `, params);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Mise à jour non trouvée' });
+    }
+    
+    res.json({ success: true, message: 'Mise à jour modifiée avec succès' });
+  } catch (error) {
+    console.error('Update project update error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update project update' });
+  }
+});
+
+// DELETE /api/farmer/projects/:projectId/updates/:updateId - Supprimer une mise à jour
+router.delete('/projects/:projectId/updates/:updateId', authenticateToken, requireFarmer, async (req, res) => {
+  try {
+    const { projectId, updateId } = req.params;
+    
+    // Vérifier que le projet appartient à l'agriculteur
+    const [projects] = await query(
+      'SELECT * FROM projects WHERE id = ? AND farmer_id = ?', 
+      [projectId, req.user.id]
+    );
+    
+    if (!projects || projects.length === 0) {
+      return res.status(404).json({ success: false, message: 'Projet non trouvé' });
+    }
+    
+    const result = await query(
+      'DELETE FROM project_updates WHERE id = ? AND project_id = ?',
+      [updateId, projectId]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Mise à jour non trouvée' });
+    }
+    
+    res.json({ success: true, message: 'Mise à jour supprimée avec succès' });
+  } catch (error) {
+    console.error('Delete project update error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete project update' });
   }
 });
 

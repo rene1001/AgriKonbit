@@ -38,10 +38,23 @@ export const resolveImageUrl = (value, fallback = '/api/placeholder/400/200') =>
 export const parseImagesArray = (images) => {
   if (!images) return [];
   try {
-    if (Array.isArray(images)) return images.filter(Boolean);
+    if (Array.isArray(images)) return images.filter(Boolean).map((item) => {
+      if (typeof item === 'string') return item;
+      if (item && typeof item === 'object') {
+        // Common shapes: {url}, {path}, {src}
+        return item.url || item.path || item.src || '';
+      }
+      return '';
+    }).filter(Boolean);
     if (typeof images === 'string') {
       const parsed = JSON.parse(images);
-      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean).map((item) => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item === 'object') {
+          return item.url || item.path || item.src || '';
+        }
+        return '';
+      }).filter(Boolean);
     }
   } catch (_) {
     // ignore

@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from 'react-query';
 import { api, endpoints } from '../../utils/api';
 import toast from 'react-hot-toast';
 import BackButton from '../../components/common/BackButton';
 
 const Wallet = () => {
+  const { t } = useTranslation();
   const { data: balanceData } = useQuery(['gyt-balance'], async () => {
     const res = await api.get(endpoints.blockchain.gytBalance);
     return res.data.data;
@@ -59,7 +61,7 @@ const Wallet = () => {
     e?.preventDefault?.();
     const amountGyt = parseFloat(amount);
     if (isNaN(amountGyt) || amountGyt <= 0) {
-      return toast.error('Montant invalide');
+      return toast.error(t('walletPage.toastInvalid'));
     }
     if (topupStep === 'form') {
       // Go to confirmation step
@@ -69,12 +71,12 @@ const Wallet = () => {
     try {
       setSubmitting(true);
       await api.post(endpoints.blockchain.gytTopup, { amountGyt, provider });
-      toast.success('Rechargement effectué');
+      toast.success(t('walletPage.toastTopupOk'));
       setOpenTopup(false);
       queryClient.invalidateQueries(['gyt-balance']);
       queryClient.invalidateQueries(['gyt-transactions']);
     } catch (e) {
-      toast.error(e?.response?.data?.message || 'Échec du rechargement');
+      toast.error(e?.response?.data?.message || t('walletPage.toastTopupFail'));
     } finally {
       setSubmitting(false);
     }
@@ -84,10 +86,10 @@ const Wallet = () => {
     <div className="py-10 bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Portefeuille GYT</h1>
+          <h1 className="text-2xl font-bold">{t('walletPage.title')}</h1>
           <div className="flex items-center gap-3">
             <BackButton />
-            <button className="btn btn-primary" onClick={openTopupModal}>Recharger</button>
+            <button className="btn btn-primary" onClick={openTopupModal}>{t('walletPage.topup')}</button>
           </div>
         </div>
 
@@ -95,29 +97,29 @@ const Wallet = () => {
           <div className="card bg-gradient-to-br from-primary-50 to-white">
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-sm text-gray-500">Solde disponible</div>
-                <div className="text-3xl font-bold">{balance.toFixed(2)} GYT</div>
-                <div className="text-sm text-gray-600">≈ ${usdEq.toFixed(2)} USD @ {usdRate.toFixed(2)} USD/GYT</div>
+                <div className="text-sm text-gray-500">{t('walletPage.balanceAvailable')}</div>
+                <div className="text-3xl font-bold">{balance.toFixed(2)} $</div>
+                <div className="text-sm text-gray-600">{t('walletPage.approx', { usd: usdEq.toFixed(2), rate: usdRate.toFixed(2) })}</div>
               </div>
               <div className="text-3xl">💰</div>
             </div>
           </div>
 
           <div className="card hover:shadow transition">
-            <div className="font-semibold mb-1">Recharger en GYT</div>
-            <div className="text-sm text-gray-600 mb-3">Stripe ou PayPal (démo)</div>
-            <button className="btn btn-primary" onClick={openTopupModal}>Ouvrir le formulaire</button>
+            <div className="font-semibold mb-1">{t('walletPage.topupCardTitle')}</div>
+            <div className="text-sm text-gray-600 mb-3">{t('walletPage.topupCardDesc')}</div>
+            <button className="btn btn-primary" onClick={openTopupModal}>{t('walletPage.openForm')}</button>
           </div>
 
           <div className="card">
-            <div className="font-semibold mb-1">Informations</div>
-            <div className="text-sm text-gray-600">Taux indicatif • Pas de frais réels • Transactions de test</div>
+            <div className="font-semibold mb-1">{t('walletPage.infoTitle')}</div>
+            <div className="text-sm text-gray-600">{t('walletPage.infoDesc')}</div>
           </div>
         </div>
         <div className="card">
           <div className="flex items-center justify-between mb-3">
-            <div className="font-semibold">Historique</div>
-            <div className="text-xs text-gray-500">Dernières opérations</div>
+            <div className="font-semibold">{t('walletPage.historyTitle')}</div>
+            <div className="text-xs text-gray-500">{t('walletPage.historySubtitle')}</div>
           </div>
           <div className="divide-y">
             {pageTxs.map((t, idx) => (
@@ -129,35 +131,34 @@ const Wallet = () => {
                     <div className="text-gray-500">{t.hash ? t.hash.slice(0, 16) + '…' : '—'}</div>
                   </div>
                 </div>
-                <div className={`font-medium ${t.amount >= 0 ? 'text-green-700' : 'text-red-700'}`}>{Number(t.amount).toFixed(2)} GYT</div>
+                <div className={`font-medium ${t.amount >= 0 ? 'text-green-700' : 'text-red-700'}`}>{Number(t.amount).toFixed(2)} DOLLAR</div>
               </div>
             ))}
             {txs.length === 0 && (
-              <div className="py-6 text-sm text-gray-500 text-center">Aucune transaction.</div>
+              <div className="py-6 text-sm text-gray-500 text-center">{t('walletPage.noTransactions')}</div>
             )}
           </div>
           {txs.length > pageSize && (
             <div className="flex items-center justify-end gap-2 pt-3">
-              <button className="btn btn-outline btn-sm" onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}>Précédent</button>
-              <div className="text-xs text-gray-600">Page {page} / {pages}</div>
-              <button className="btn btn-outline btn-sm" onClick={() => setPage(Math.min(pages, page + 1))} disabled={page === pages}>Suivant</button>
+              <button className="btn btn-outline btn-sm" onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}>{t('walletPage.prev')}</button>
+              <div className="text-xs text-gray-600">{t('walletPage.pageXofY', { page, pages })}</div>
+              <button className="btn btn-outline btn-sm" onClick={() => setPage(Math.min(pages, page + 1))} disabled={page === pages}>{t('walletPage.next')}</button>
             </div>
           )}
-        </div>
 
         {/* Top-up Modal */}
         {openTopup && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div className="bg-white w-full max-w-md rounded-lg shadow-lg border">
               <div className="px-5 py-4 border-b flex items-center justify-between">
-                <div className="font-semibold">Recharger le portefeuille</div>
+                <div className="font-semibold">{t('walletPage.modalTitle')}</div>
                 <button className="text-gray-500 hover:text-gray-700" onClick={() => setOpenTopup(false)}>✕</button>
               </div>
               <form onSubmit={submitTopup} className="px-5 py-4 space-y-4">
                 {topupStep === 'form' ? (
                   <>
                     <div>
-                      <label className="block text-sm text-gray-700 mb-1">Montant (GYT)</label>
+                      <label className="block text-sm text-gray-700 mb-1">{t('walletPage.amountLabel')}</label>
                       <input
                         type="number"
                         min="0"
@@ -165,60 +166,59 @@ const Wallet = () => {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="Ex: 50"
+                        placeholder={t('walletPage.amountPh')}
                         required
                       />
                       <div className="mt-2 flex flex-wrap gap-2 text-xs">
                         {[10,25,50,100].map(v => (
-                          <button type="button" key={v} className="btn btn-outline btn-xs" onClick={() => setAmount(String(v))}>{v} GYT</button>
+                          <button type="button" key={v} className="btn btn-outline btn-xs" onClick={() => setAmount(String(v))}>{v} DOLLAR</button>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-700 mb-1">Fournisseur de paiement</label>
+                      <label className="block text-sm text-gray-700 mb-1">{t('walletPage.providerLabel')}</label>
                       <div className="flex gap-3">
                         <label className="inline-flex items-center gap-2">
                           <input type="radio" name="provider" value="stripe" checked={provider==='stripe'} onChange={() => setProvider('stripe')} />
-                          <span>Stripe</span>
+                          <span>{t('walletPage.stripe')}</span>
                         </label>
                         <label className="inline-flex items-center gap-2">
                           <input type="radio" name="provider" value="paypal" checked={provider==='paypal'} onChange={() => setProvider('paypal')} />
-                          <span>PayPal</span>
+                          <span>{t('walletPage.paypal')}</span>
                         </label>
                       </div>
                     </div>
                     <div className="flex items-center justify-end gap-2 pt-2">
-                      <button type="button" className="btn btn-outline" onClick={() => setOpenTopup(false)} disabled={submitting}>Annuler</button>
+                      <button type="button" className="btn btn-outline" onClick={() => setOpenTopup(false)} disabled={submitting}>{t('walletPage.cancel')}</button>
                       <button type="submit" className="btn btn-primary" disabled={submitting || !(amountNum>0)}>
-                        Continuer
+                        {t('walletPage.continue')}
                       </button>
                     </div>
-                    <div className="text-xs text-gray-500">Démo: pas de frais réels, transactions simulées.</div>
+                    <div className="text-xs text-gray-500">{t('walletPage.demoNote')}</div>
                   </>
-                ) : (
+                  ) : (
                   <>
                     <div className="bg-gray-50 border rounded p-3 text-sm">
-                      <div className="flex items-center justify-between"><span>Montant</span><span className="font-medium">{amountNum.toFixed(2)} GYT</span></div>
-                      <div className="flex items-center justify-between"><span>Frais (simulés)</span><span className="font-medium">{isFinite(feeGyt) ? feeGyt.toFixed(2) : '—'} GYT</span></div>
-                      <div className="flex items-center justify-between"><span>Total débité</span><span className="font-semibold">{isFinite(totalGyt) ? totalGyt.toFixed(2) : '—'} GYT</span></div>
-                      <div className="mt-1 text-xs text-gray-600">≈ ${(totalGyt*usdRate).toFixed(2)} USD • Fournisseur: {provider}</div>
+                      <div className="flex items-center justify-between"><span>{t('walletPage.summaryAmount')}</span><span className="font-medium">{amountNum.toFixed(2)} DOLLAR</span></div>
+                      <div className="flex items-center justify-between"><span>{t('walletPage.summaryFees')}</span><span className="font-medium">{isFinite(feeGyt) ? feeGyt.toFixed(2) : '—'} DOLLAR</span></div>
+                      <div className="flex items-center justify-between"><span>{t('walletPage.summaryTotal')}</span><span className="font-semibold">{isFinite(totalGyt) ? totalGyt.toFixed(2) : '—'} DOLLAR</span></div>
+                      <div className="mt-1 text-xs text-gray-600">{t('walletPage.summaryApprox', { usd: (totalGyt*usdRate).toFixed(2), provider })}</div>
                     </div>
                     <div className="flex items-center justify-between pt-2">
-                      <button type="button" className="btn btn-outline" onClick={() => setTopupStep('form')} disabled={submitting}>Modifier</button>
+                      <button type="button" className="btn btn-outline" onClick={() => setTopupStep('form')} disabled={submitting}>{t('walletPage.edit')}</button>
                       <div className="flex items-center gap-2">
-                        <button type="button" className="btn" onClick={() => setOpenTopup(false)} disabled={submitting}>Annuler</button>
-                        <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Traitement…' : 'Confirmer'}</button>
+                        <button type="button" className="btn" onClick={() => setOpenTopup(false)} disabled={submitting}>{t('walletPage.cancel')}</button>
+                        <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? t('walletPage.confirming') : t('walletPage.confirm')}</button>
                       </div>
                     </div>
                   </>
-                )}
-              </form>
+                  )}
+                </form>
+              </div>
             </div>
-          </div>
         )}
       </div>
     </div>
   );
 };
-
 export default Wallet;

@@ -1,0 +1,1560 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+
+const resources = {
+  en: {
+    translation: {
+      common: {
+        loading: 'Loading...',
+        loadingEllipsis: 'Loading…',
+        updatingEllipsis: 'Updating…',
+        pleaseLogin: 'Please login',
+        or: 'or'
+      },
+      app: {
+        name: 'AgriKonbit'
+      },
+      roles: {
+        investor: 'Investor',
+        farmer: 'Farmer',
+        consumer: 'Consumer',
+        admin: 'Administrator'
+      },
+      auth: {
+        login: {
+          title: 'Login to AgriKonbit',
+          success: 'Login successful',
+          failure: 'Login failed',
+          walletSuccess: 'Wallet login successful',
+          walletFailure: 'Wallet login failed',
+          submitting: 'Signing in...',
+          cta: 'Login',
+          wallet: 'Login with Wallet (Simulated)',
+          noAccount: "Don't have an account?",
+          createOne: 'Create one'
+        },
+        register: {
+          title: 'Create your account',
+          success: 'Account created successfully',
+          failure: 'Account creation failed',
+          submitting: 'Creating account...',
+          cta: 'Create account',
+          haveAccount: 'Already have an account?'
+        },
+        fields: {
+          email: 'Email',
+          password: 'Password',
+          fullName: 'Full name',
+          role: 'Role'
+        },
+        errors: {
+          emailRequired: 'Email is required',
+          passwordRequired: 'Password is required',
+          fullNameRequired: 'Full name is required'
+        }
+      },
+      footer: {
+        companyDescription: "Connecting farmers to investors for a sustainable agricultural future through blockchain.",
+        platform: 'Platform',
+        support: 'Support',
+        company: 'Company',
+        howItWorks: 'How it works',
+        forFarmers: 'For farmers',
+        forInvestors: 'For investors',
+        marketplace: 'Marketplace',
+        helpCenter: "Help center",
+        contactUs: 'Contact us',
+        terms: "Terms of use",
+        privacy: 'Privacy policy',
+        aboutUs: 'About us',
+        careers: 'Careers',
+        press: 'Press',
+        blog: 'Blog',
+        poweredBy: 'Powered by',
+        rights: 'All rights reserved.'
+      },
+      cart: {
+        title: 'Your cart',
+        empty: 'Your cart is empty',
+        subtotal: 'Subtotal',
+        checkout: 'Checkout'
+      },
+      nav: {
+        projects: 'Projects',
+        marketplace: 'Marketplace',
+        login: 'Login',
+        register: 'Create account',
+        dashboard: 'Dashboard',
+        profile: 'Profile',
+        admin: 'Administration',
+        logout: 'Logout',
+        cart: 'Cart',
+        about: 'About'
+      },
+      dashboard: {
+        investor: {
+          title: '💰 Investor Dashboard',
+          welcome: 'Welcome to your investor dashboard',
+          balance: 'DOLLAR Balance',
+          totalInvested: 'Total Invested',
+          activeProjects: 'Active Projects',
+          returns: 'Expected Returns',
+          tabs: {
+            overview: '📊 Overview',
+            investments: '💼 My Investments',
+            projects: '🌱 Projects',
+            wallet: '💰 Wallet',
+            transactions: '📝 Transactions',
+            profile: '👤 Profile'
+          }
+        },
+        consumer: {
+          title: '🛍️ Consumer Dashboard',
+          subtitle: 'Purchases, traceability and deliveries',
+          notifications: 'Notifications',
+          markAll: 'Mark all as read',
+          viewAll: 'View all',
+          none: 'No notifications',
+          tabs: {
+            overview: "📊 Overview",
+            orders: '🧾 My orders',
+            deliveries: '🚚 Deliveries',
+            wallet: '💰 Wallet',
+            favorites: '⭐ Favorites',
+            subscriptions: '🔁 Subscriptions',
+            profile: '👤 Profile',
+            support: '🆘 Support'
+          },
+          stats: {
+            balance: 'DOLLAR Balance',
+            totalOrders: 'Total Orders',
+            inProgress: 'In progress',
+            delivered: 'Delivered'
+          },
+          recentOrders: 'My Recent Orders',
+          noOrders: 'No orders yet',
+          marketplaceCard: {
+            title: 'Marketplace',
+            desc: 'Buy products'
+          },
+          deliveriesCard: {
+            title: 'Track deliveries',
+            desc: 'Track your packages'
+          },
+          open: 'Open'
+        },
+        overview: {
+          stats: {
+            projectsActive: 'Active Projects',
+            projectsTotal: 'Total',
+            productsOnSale: 'Products on Sale',
+            stock: 'Stock',
+            units: 'units',
+            ordersPending: 'Pending Orders',
+            ordersTotal: 'Total',
+            walletBalance: 'DOLLAR Balance',
+            earned: 'Earned'
+          }
+        }
+      },
+      profile: {
+        title: 'My Profile',
+        loading: 'Loading profile...',
+        loadError: 'Error loading profile',
+        updateSuccess: 'Profile updated successfully!',
+        updateError: 'Update error',
+        photo: {
+          alt: 'Profile',
+          tooLarge: 'Image must not exceed 5 MB',
+          invalidType: 'File must be an image',
+          updated: 'Profile picture updated!',
+          uploadError: 'Error uploading image',
+          uploading: 'Uploading...',
+          change: '📷 Change photo',
+          delete: '🗑️ Delete photo',
+          confirmDelete: 'Do you really want to delete your profile picture?',
+          deleted: 'Profile picture deleted',
+          deleteError: 'Error deleting'
+        },
+        theme: {
+          title: '🎨 Theme',
+          changed: 'Theme changed: {{theme}}',
+          light: 'Light',
+          dark: 'Dark',
+          auto: 'Auto',
+          lightLabel: 'Light ☀️',
+          darkLabel: 'Dark 🌙',
+          autoLabel: 'Auto 🔄',
+          error: 'Error changing theme'
+        },
+        account: {
+          title: '💼 Account',
+          kycStatus: 'KYC Status',
+          kycUnknown: 'not verified',
+          balance: 'DOLLAR Balance'
+        },
+        info: {
+          title: '📋 Personal Information',
+          fullName: 'Full name *',
+          fullNameShort: 'Full name',
+          email: 'Email',
+          phone: 'Phone',
+          country: 'Country',
+          city: 'City',
+          address: 'Address',
+          bio: 'Bio / Description (max 500 characters)',
+          bioShort: 'Bio',
+          bioPlaceholder: 'Tell us about yourself...',
+          bioCount: '{{count}}/500 characters'
+        },
+        security: {
+          title: '🔐 Security',
+          changePassword: 'Change password',
+          currentPassword: 'Current password',
+          newPassword: 'New password',
+          confirmPassword: 'Confirm password'
+        },
+        password: {
+          mismatch: 'Passwords do not match',
+          tooShort: 'Password must be at least 6 characters',
+          changed: 'Password changed successfully!',
+          changeError: 'Error changing password'
+        }
+      },
+      profilePage: {
+        header: '👤 My Profile',
+        edit: '✏️ Edit',
+        save: 'Save',
+        saving: 'Saving...',
+        cancel: 'Cancel',
+        fields: {
+          fullName: 'Full name',
+          email: 'Email',
+          phone: 'Phone',
+          role: 'Role',
+          country: 'Country',
+          city: 'City',
+          address: 'Address'
+        },
+        accountInfo: '💼 Account Information',
+        kycStatus: 'KYC Status',
+        kyc: {
+          verified: 'verified',
+          pending: 'pending',
+          notVerified: 'not_verified'
+        },
+        balance: 'DOLLAR Balance'
+      },
+      home: {
+        hero: {
+          title: 'Sustainable Agriculture through Blockchain',
+          subtitle: 'Connecting farmers with investors for a better future',
+          cta: 'Get Started',
+          ctaAlt: 'Learn More'
+        }
+      }
+    }
+  },
+  es: {
+    translation: {
+      app: {
+        name: 'AgriKonbit'
+      },
+      footer: {
+        companyDescription: "Conectando agricultores con inversores para un futuro agrícola sostenible a través de blockchain.",
+        platform: 'Plataforma',
+        support: 'Soporte',
+        company: 'Empresa',
+        howItWorks: '¿Cómo funciona?',
+        forFarmers: 'Para agricultores',
+        forInvestors: 'Para inversores',
+        marketplace: 'Mercado',
+        helpCenter: "Centro de ayuda",
+        contactUs: 'Contáctenos',
+        terms: "Términos de uso",
+        privacy: 'Política de privacidad',
+        aboutUs: 'Sobre nosotros',
+        careers: 'Carreras',
+        press: 'Prensa',
+        blog: 'Blog',
+        poweredBy: 'Desarrollado por',
+        rights: 'Todos los derechos reservados.'
+      },
+      nav: {
+        projects: 'Proyectos',
+        marketplace: 'Mercado',
+        login: 'Iniciar sesión',
+        register: 'Crear cuenta',
+        dashboard: 'Panel',
+        profile: 'Perfil',
+        admin: 'Administración',
+        logout: 'Cerrar sesión',
+        cart: 'Carrito',
+        about: 'Acerca de'
+      },
+      profilePage: {
+        header: '👤 Mi Perfil',
+        edit: '✏️ Editar',
+        save: 'Guardar',
+        saving: 'Guardando...',
+        cancel: 'Cancelar',
+        fields: {
+          fullName: 'Nombre completo',
+          email: 'Correo electrónico',
+          phone: 'Teléfono',
+          role: 'Rol',
+          country: 'País',
+          city: 'Ciudad',
+          address: 'Dirección'
+        },
+        accountInfo: '💼 Información de la cuenta',
+        kycStatus: 'Estado KYC',
+        kyc: {
+          verified: 'verificado',
+          pending: 'pendiente',
+          notVerified: 'no_verificado'
+        },
+        balance: 'Saldo DOLLAR'
+      }
+    }
+  },
+  fr: {
+    translation: {
+      common: {
+        loading: 'Chargement...',
+        loadingEllipsis: 'Chargement…',
+        updatingEllipsis: 'Mise à jour en cours…',
+        pleaseLogin: 'Veuillez vous connecter',
+        or: 'ou'
+      },
+      app: {
+        name: 'AgriKonbit'
+      },
+      roles: {
+        investor: 'Investisseur',
+        farmer: 'Agriculteur',
+        consumer: 'Consommateur',
+        admin: 'Administrateur'
+      },
+      auth: {
+        login: {
+          title: 'Connexion à AgriKonbit',
+          success: 'Connexion réussie',
+          failure: 'Échec de la connexion',
+          walletSuccess: 'Connexion portefeuille réussie',
+          walletFailure: 'Connexion portefeuille échouée',
+          submitting: 'Connexion en cours...',
+          cta: 'Se connecter',
+          wallet: 'Se connecter avec Portefeuille (Simulé)',
+          noAccount: "Vous n'avez pas de compte ?",
+          createOne: 'Créer un compte'
+        },
+        register: {
+          title: 'Créer votre compte',
+          success: 'Compte créé avec succès',
+          failure: 'Échec de la création du compte',
+          submitting: 'Création du compte...',
+          cta: 'Créer un compte',
+          haveAccount: 'Vous avez déjà un compte ?'
+        },
+        fields: {
+          email: 'Email',
+          password: 'Mot de passe',
+          fullName: 'Nom complet',
+          role: 'Rôle'
+        },
+        errors: {
+          emailRequired: "L'email est requis",
+          passwordRequired: 'Le mot de passe est requis',
+          fullNameRequired: 'Le nom complet est requis'
+        }
+      },
+      footer: {
+        companyDescription: "Connecter les agriculteurs aux investisseurs pour un avenir agricole durable grâce à la blockchain.",
+        platform: 'Plateforme',
+        support: 'Support',
+        company: 'Entreprise',
+        howItWorks: 'Comment ça marche',
+        forFarmers: 'Pour les agriculteurs',
+        forInvestors: 'Pour les investisseurs',
+        marketplace: 'Marketplace',
+        helpCenter: "Centre d'aide",
+        contactUs: 'Nous contacter',
+        terms: "Conditions d'utilisation",
+        privacy: 'Politique de confidentialité',
+        aboutUs: 'À propos',
+        careers: 'Carrières',
+        press: 'Presse',
+        blog: 'Blog',
+        poweredBy: 'Propulsé par',
+        rights: 'Tous droits réservés.'
+      },
+      cart: {
+        title: 'Votre panier',
+        empty: 'Votre panier est vide',
+        subtotal: 'Sous-total',
+        checkout: 'Procéder au paiement'
+      },
+      nav: {
+        projects: 'Projets',
+        marketplace: 'Marketplace',
+        login: 'Connexion',
+        register: 'Créer un compte',
+        dashboard: 'Tableau de bord',
+        profile: 'Profil',
+        admin: 'Administration',
+        logout: 'Déconnexion',
+        cart: 'Panier',
+        about: 'À propos'
+      },
+      dashboard: {
+        investor: {
+          title: '💰 Tableau de bord Investisseur',
+          welcome: 'Bienvenue sur votre tableau de bord investisseur',
+          balance: 'Solde DOLLAR',
+          totalInvested: 'Total Investi',
+          activeProjects: 'Projets Actifs',
+          returns: 'Rendements Attendus',
+          tabs: {
+            overview: '📊 Vue d\'ensemble',
+            investments: '💼 Mes Investissements',
+            projects: '🌱 Projets',
+            wallet: '💰 Portefeuille',
+            transactions: '📝 Transactions',
+            profile: '👤 Profil'
+          }
+        },
+        consumer: {
+          title: '🛍️ Tableau de bord Consommateur',
+          subtitle: 'Achats, traçabilité et livraisons',
+          notifications: 'Notifications',
+          markAll: 'Tout lire',
+          viewAll: 'Voir tout',
+          none: 'Aucune notification',
+          tabs: {
+            overview: "📊 Vue d'ensemble",
+            orders: '🧾 Mes commandes',
+            deliveries: '🚚 Livraisons',
+            wallet: '💰 Portefeuille',
+            favorites: '⭐ Favoris',
+            subscriptions: '🔁 Abonnements',
+            profile: '👤 Profil',
+            support: '🆘 Support'
+          },
+          stats: {
+            balance: 'Solde DOLLAR',
+            totalOrders: 'Total Commandes',
+            inProgress: 'En cours',
+            delivered: 'Livrées'
+          },
+          recentOrders: 'Mes Commandes Récentes',
+          noOrders: 'Aucune commande pour le moment',
+          marketplaceCard: {
+            title: 'Marketplace',
+            desc: 'Acheter des produits'
+          },
+          deliveriesCard: {
+            title: 'Suivi des livraisons',
+            desc: 'Suivre vos colis'
+          },
+          open: 'Ouvrir'
+        },
+        overview: {
+          stats: {
+            projectsActive: 'Projets Actifs',
+            projectsTotal: 'Total',
+            productsOnSale: 'Produits en Vente',
+            stock: 'Stock',
+            units: 'unités',
+            ordersPending: 'Commandes en Cours',
+            ordersTotal: 'Total',
+            walletBalance: 'Solde DOLLAR',
+            earned: 'Gagné'
+          },
+          funding: {
+            totalFunding: 'Financement Total',
+            investors: 'Investisseurs',
+            investments: 'investissements',
+            marketplaceRevenue: 'Revenus Marketplace'
+          },
+          recentProjects: {
+            title: '📋 Projets Récents',
+            viewAll: 'Voir tous →',
+            none: 'Aucun projet pour le moment',
+            fundedPct: '{{pct}}% financé'
+          },
+          recentOrders: {
+            title: '📦 Commandes Récentes',
+            viewAll: 'Voir toutes →',
+            none: 'Aucune commande pour le moment'
+          },
+          products: {
+            title: '🛍️ Mes Produits',
+            viewAll: 'Voir tous →',
+            active: 'Actif',
+            inactive: 'Inactif'
+          }
+        },
+        finances: {
+          wallet: {
+            available: 'Solde Disponible',
+            earned: 'Total Gagné',
+            withdrawn: 'Total Retiré',
+            unit: 'DOLLAR'
+          },
+          deposit: {
+            title: '💰 Déposer des DOLLAR',
+            desc: 'Achetez des DOLLAR pour vos achats ou investissements',
+            amountLabel: 'Montant (USD → DOLLAR)',
+            rate: 'Taux: 1 USD = 1 DOLLAR',
+            stripe: 'Stripe',
+            paypal: 'PayPal',
+            metamask: 'MetaMask'
+          },
+          withdraw: {
+            title: '💸 Retirer des Fonds',
+            desc: 'Transférez vos gains vers votre compte bancaire ou portefeuille',
+            cta: '💸 Retirer'
+          },
+          revenue: {
+            title: '💵 Sources de Revenus',
+            projects: 'Financement de Projets',
+            marketplace: 'Ventes Marketplace'
+          },
+          investors: {
+            title: '👥 Mes Investisseurs',
+            investedUnit: 'DOLLAR',
+            count: 'investissements',
+            none: "Aucun investisseur pour le moment"
+          },
+          transactions: {
+            title: '📊 Historique des Transactions',
+            exportCsv: 'Export CSV',
+            exportPdf: 'Export PDF',
+            csvEmpty: 'Aucune donnée à exporter',
+            table: {
+              type: 'Type',
+              description: 'Description',
+              amount: 'Montant',
+              status: 'Statut',
+              date: 'Date'
+            },
+            none: 'Aucune transaction pour le moment'
+          },
+          modal: {
+            withdrawTitle: '💸 Retirer des Fonds',
+            amount: 'Montant (DOLLAR)',
+            available: 'Disponible',
+            method: 'Méthode de retrait',
+            methods: {
+              bank: 'Virement bancaire',
+              mobile: 'Mobile Money',
+              crypto: 'Portefeuille crypto'
+            },
+            destination: 'Destination (numéro de compte/wallet)',
+            notes: 'Notes (optionnel)',
+            notesPh: 'Informations supplémentaires...',
+            cancel: 'Annuler',
+            confirm: 'Confirmer',
+            processing: 'Traitement...'
+          }
+        },
+        projects: {
+          header: '🌱 Gestion des Projets',
+          newProject: '➕ Nouveau Projet',
+          stats: {
+            total: 'Total',
+            pending: 'En attente',
+            validated: 'Validés',
+            active: 'Actifs',
+            completed: 'Terminés'
+          },
+          buttons: {
+            details: 'Voir détails',
+            edit: 'Modifier',
+            addUpdate: 'Ajouter MAJ'
+          }
+        },
+        messaging: {
+          header: '💬 Messages',
+          new: '✉️ Nouveau',
+          none: 'Aucune conversation',
+          send: '📤 Envoyer',
+          selectPrompt: 'Sélectionnez une conversation',
+          orCreate: 'ou créez-en une nouvelle',
+          modal: {
+            title: '✉️ Nouveau Message',
+            recipient: 'Destinataire *',
+            investorsGroup: '📊 Mes Investisseurs',
+            adminsGroup: '🛡️ Administrateurs',
+            subject: 'Sujet',
+            subjectPh: 'Ex: Mise à jour de mon projet',
+            message: 'Message *',
+            messagePh: 'Votre message...',
+            cancel: 'Annuler',
+            send: '📤 Envoyer'
+          }
+        },
+        resources: {
+          header: '📚 Centre de Ressources',
+          tabs: {
+            guides: '📖 Guides',
+            videos: '🎥 Vidéos',
+            faq: '❓ FAQ',
+            support: '🛟 Support'
+          },
+          quickHelp: {
+            title: '💡 Besoin d\'aide rapide ?',
+            faq: 'Voir la FAQ',
+            contact: 'Contacter le Support'
+          }
+        }
+      },
+      projectsPage: {
+        title: 'Projets agricoles',
+        total: '{{count}} projets',
+        loading: 'Chargement des projets...',
+        error: 'Échec du chargement des projets.',
+        unknownError: 'Erreur inconnue',
+        budget: 'Budget: {{amount}} DOLLAR',
+        return: 'Rendement: {{percent}}% annuel',
+        duration: 'Durée: {{days}} jours',
+        details: 'Détails'
+      },
+      projectDetail: {
+        loading: 'Chargement du projet...',
+        loadError: 'Échec du chargement du projet.',
+        back: '← Retour',
+        cards: {
+          budget: 'Budget',
+          return: 'Rendement',
+          returnYearly: '{{percent}}% annuel',
+          duration: 'Durée',
+          durationDays: '{{days}} jours',
+          progress: 'Progression'
+        },
+        updates: 'Mises à jour du projet',
+        noUpdates: 'Aucune mise à jour pour le moment.',
+        amountLabel: 'Montant (DOLLAR)',
+        investBtn: 'Investir avec le Portefeuille DOLLAR',
+        processing: 'Traitement...',
+        minInfo: 'Minimum 10 DOLLAR. Vous pouvez aussi déposer des DOLLAR via Paiements.',
+        goDashboard: 'Aller au tableau de bord',
+        minError: 'Le montant minimum est 10 DOLLAR',
+        investOk: 'Investissement réussi',
+        investFail: "Échec de l'investissement"
+      },
+      checkoutPage: {
+        title: 'Checkout',
+        empty: 'Votre panier est vide.',
+        totalsUSD: 'Total (USD)',
+        totalsGYT: 'Total (DOLLAR)',
+        yourBalance: 'Votre solde DOLLAR',
+        insufficient: 'Solde insuffisant. Veuillez déposer des DOLLAR avant de poursuivre.',
+        payButton: 'Payer avec DOLLAR Wallet',
+        processing: 'Traitement…',
+        tip: 'Astuce: Déposez des DOLLAR sur votre Tableau de bord.',
+        success: 'Commande passée avec succès',
+        createFailed: "La création de la commande a échoué",
+        failed: 'Échec du paiement'
+      },
+      walletPage: {
+        title: 'Portefeuille Dollar',
+        topup: 'Recharger',
+        balanceAvailable: 'Solde disponible',
+        approx: '≈ ${{usd}} USD @ {{rate}} USD/$',
+        topupCardTitle: 'Recharger en Dollar',
+        topupCardDesc: 'Stripe ou PayPal (démo)',
+        openForm: 'Ouvrir le formulaire',
+        infoTitle: 'Informations',
+        infoDesc: 'Taux indicatif • Pas de frais réels • Transactions de test',
+        historyTitle: 'Historique',
+        historySubtitle: 'Dernières opérations',
+        noTransactions: 'Aucune transaction.',
+        prev: 'Précédent',
+        next: 'Suivant',
+        pageXofY: 'Page {{page}} / {{pages}}',
+        modalTitle: 'Recharger le portefeuille',
+        amountLabel: 'Montant (DOLLAR)',
+        amountPh: 'Ex: 50',
+        providerLabel: 'Fournisseur de paiement',
+        stripe: 'Stripe',
+        paypal: 'PayPal',
+        cancel: 'Annuler',
+        continue: 'Continuer',
+        demoNote: 'Démo: pas de frais réels, transactions simulées.',
+        summaryAmount: 'Montant',
+        summaryFees: 'Frais (simulés)',
+        summaryTotal: 'Total débité',
+        summaryApprox: '≈ ${{usd}} USD • Fournisseur: {{provider}}',
+        edit: 'Modifier',
+        confirm: 'Confirmer',
+        confirming: 'Traitement…',
+        toastInvalid: 'Montant invalide',
+        toastTopupOk: 'Rechargement effectué',
+        toastTopupFail: 'Échec du rechargement'
+      },
+      farmerOrders: {
+        title: 'Mes Commandes',
+        loading: 'Chargement…',
+        empty: 'Aucune commande',
+        client: 'Client',
+        items: 'Articles',
+        itemsCount: '{{count}} produit(s)',
+        total: 'Total',
+        date: 'Date'
+      },
+      addProduct: {
+        title: 'Ajouter un produit',
+        nameLabel: 'Nom du produit',
+        namePh: "Ex: Tomates bio, Miel artisanal...",
+        descLabel: 'Description',
+        descPh: "Décrivez votre produit, ses caractéristiques, son mode de production...",
+        priceLabel: 'Prix (DOLLAR)',
+        pricePh: '0.00',
+        stockLabel: 'Stock',
+        stockPh: 'Quantité disponible',
+        unitLabel: 'Unité',
+        unit: {
+          kg: 'Kilogrammes (kg)',
+          g: 'Grammes (g)',
+          l: 'Litres (l)',
+          ml: 'Millilitres (ml)',
+          piece: 'Pièce(s)',
+          box: 'Boîte(s)',
+          bottle: 'Bouteille(s)'
+        },
+        categoryLabel: 'Catégorie',
+        category: {
+          crops: 'Cultures',
+          livestock: 'Élevage',
+          dairy: 'Produits laitiers',
+          honey: 'Miel',
+          fruits: 'Fruits',
+          vegetables: 'Légumes',
+          grains: 'Céréales',
+          other: 'Autre'
+        },
+        locationLabel: 'Localisation',
+        locationPh: 'Ex: Port-au-Prince, Cap-Haïtien...',
+        imagesLabel: 'Images du produit',
+        imagesPh: "https://... ou URL d'image",
+        addImage: 'Ajouter',
+        removeImage: 'Supprimer',
+        submit: 'Ajouter le produit',
+        submitting: 'Ajout en cours...',
+        toastName: 'Le nom du produit est requis (minimum 3 caractères)',
+        toastDesc: 'La description doit contenir au moins 10 caractères',
+        toastPrice: 'Le prix doit être supérieur à 0',
+        toastStock: 'Le stock doit être un entier positif ou nul',
+        toastLocation: 'La localisation doit contenir au moins 3 caractères',
+        toastSuccess: 'Produit ajouté avec succès',
+        toastFail: "Échec de l'ajout du produit"
+      },
+      profile: {
+        title: 'Mon Profil',
+        loading: 'Chargement du profil...',
+        loadError: 'Erreur lors du chargement du profil',
+        updateSuccess: 'Profil mis à jour avec succès!',
+        updateError: 'Erreur lors de la mise à jour',
+        photo: {
+          alt: 'Profil',
+          tooLarge: "L'image ne doit pas dépasser 5 Mo",
+          invalidType: 'Le fichier doit être une image',
+          updated: 'Photo de profil mise à jour!',
+          uploadError: "Erreur lors de l'upload de l'image",
+          uploading: 'Upload...',
+          change: '📷 Changer la photo',
+          delete: '🗑️ Supprimer la photo',
+          confirmDelete: 'Voulez-vous vraiment supprimer votre photo de profil?',
+          deleted: 'Photo de profil supprimée',
+          deleteError: 'Erreur lors de la suppression'
+        },
+        theme: {
+          title: '🎨 Thème',
+          changed: 'Thème changé: {{theme}}',
+          light: 'Clair',
+          dark: 'Sombre',
+          auto: 'Auto',
+          lightLabel: 'Clair ☀️',
+          darkLabel: 'Sombre 🌙',
+          autoLabel: 'Auto 🔄',
+          error: 'Erreur lors du changement de thème'
+        },
+        account: {
+          title: '💼 Compte',
+          kycStatus: 'Statut KYC',
+          kycUnknown: 'non vérifié',
+          balance: 'Solde DOLLAR'
+        },
+        info: {
+          title: '📋 Informations Personnelles',
+          fullName: 'Nom complet *',
+          fullNameShort: 'Nom complet',
+          email: 'Email',
+          phone: 'Téléphone',
+          country: 'Pays',
+          city: 'Ville',
+          address: 'Adresse',
+          bio: 'Bio / Description (max 500 caractères)',
+          bioShort: 'Bio',
+          bioPlaceholder: 'Parlez-nous de vous...',
+          bioCount: '{{count}}/500 caractères'
+        },
+        security: {
+          title: '🔐 Sécurité',
+          changePassword: 'Changer le mot de passe',
+          currentPassword: 'Mot de passe actuel',
+          newPassword: 'Nouveau mot de passe',
+          confirmPassword: 'Confirmer le mot de passe'
+        },
+        password: {
+          mismatch: 'Les mots de passe ne correspondent pas',
+          tooShort: 'Le mot de passe doit contenir au moins 6 caractères',
+          changed: 'Mot de passe changé avec succès!',
+          changeError: 'Erreur lors du changement de mot de passe'
+        }
+      },
+      profilePage: {
+        header: '👤 Mon Profil',
+        edit: '✏️ Modifier',
+        save: 'Enregistrer',
+        saving: 'Enregistrement...',
+        cancel: 'Annuler',
+        fields: {
+          fullName: 'Nom complet',
+          email: 'Email',
+          phone: 'Téléphone',
+          role: 'Rôle',
+          country: 'Pays',
+          city: 'Ville',
+          address: 'Adresse'
+        },
+        accountInfo: '💼 Informations du Compte',
+        kycStatus: 'Statut KYC',
+        kyc: {
+          verified: 'verified',
+          pending: 'pending',
+          notVerified: 'not_verified'
+        },
+        balance: 'Solde DOLLAR'
+      },
+      common: {
+        cancel: 'Annuler',
+        save: '💾 Enregistrer'
+      },
+      orders: {
+        loadError: 'Impossible de charger la commande',
+        statusUpdated: 'Statut mis à jour',
+        updateFailed: 'Échec de la mise à jour',
+        manageTitle: 'Gérer la commande',
+        fields: {
+          orderNumber: 'Numéro de commande',
+          status: 'Statut',
+          customer: 'Client',
+          total: 'Total',
+          orderDate: 'Date de commande',
+          paymentMethod: 'Méthode de paiement',
+          shippingAddress: 'Adresse de livraison',
+          notes: 'Notes'
+        },
+        status: {
+          pending: 'En attente',
+          paid: 'Payée',
+          shipped: 'Expédiée',
+          delivered: 'Livrée',
+          cancelled: 'Annulée',
+          manage: 'Gestion du statut',
+          current: 'Statut actuel',
+          pendingHint: 'En attente de paiement',
+          paidHint: 'Commande payée, prête à être expédiée',
+          shippedHint: 'Commande expédiée, en attente de confirmation de livraison',
+          deliveredHint: 'Commande livrée et finalisée',
+          cancelledHint: 'Commande annulée'
+        },
+        items: {
+          title: 'Articles commandés',
+          qty: 'Quantité'
+        },
+        actions: {
+          markShipped: 'Marquer comme expédiée',
+          markDelivered: 'Marquer comme livrée',
+          cancelOrder: 'Annuler la commande',
+          noneAvailable: 'Aucune action disponible pour ce statut'
+        }
+      },
+      marketplace: {
+        title: 'Marketplace',
+        loadingProducts: 'Chargement des produits...',
+        loadError: 'Échec du chargement des produits.',
+        unknownError: 'Erreur inconnue',
+        filters: {
+          title: 'Filtres',
+          search: 'Rechercher',
+          searchPlaceholder: 'Mangue, miel...',
+          category: 'Catégorie',
+          all: 'Tous',
+          originCountry: 'Pays d\'origine',
+          originPlaceholder: 'Burkina Faso, ...',
+          organicOnly: 'Bio uniquement'
+        },
+        categories: {
+          cereals: 'Céréales',
+          fruits: 'Fruits',
+          vegetables: 'Légumes',
+          honey: 'Miel',
+          dairy: 'Produits laitiers',
+          meat: 'Viande'
+        },
+        product: {
+          by: 'Par',
+          inStock: 'en stock',
+          details: 'Détails',
+          addToCart: 'Ajouter au panier'
+        }
+      },
+      productDetail: {
+        loading: 'Chargement du produit...',
+        loadError: 'Échec du chargement du produit.',
+        inStock: 'en stock',
+        addToCart: 'Ajouter au panier',
+        viewTraceability: 'Voir la traçabilité',
+        origin: 'Origine',
+        harvestDate: 'Date de récolte',
+        certifiedOrganic: 'Bio certifié',
+        yes: 'Oui'
+      },
+      about: {
+        videoTitle: 'Vidéo explicative du projet',
+        whyInvest: {
+          title: 'Pourquoi investir avec Agri Konbit ?',
+          subtitle: 'Votre engagement pour un changement durable',
+          description: "Agri Konbit est bien plus qu'une plateforme d'investissement : c'est un mouvement collectif pour la renaissance de l'agriculture haïtienne. En investissant avec nous, vous soutenez des initiatives concrètes qui créent des emplois, renforcent la sécurité alimentaire et protègent notre environnement.",
+          impact: {
+            title: 'Impact mesurable',
+            desc: 'Chaque investissement améliore directement les revenus des agriculteurs et réduit la dépendance alimentaire du pays.'
+          },
+          transparency: {
+            title: 'Transparence totale',
+            desc: "Grâce à notre tableau de bord numérique, vous suivez l'évolution de chaque projet et l'utilisation de vos fonds."
+          },
+          collaborative: {
+            title: 'Approche collaborative',
+            desc: "Inspiré du concept traditionnel du konbit, notre modèle repose sur le travail collectif et l'implication active des communautés locales."
+          },
+          sustainable: {
+            title: 'Projets durables',
+            desc: 'Nous promouvons l\'agroécologie, la gestion responsable des ressources et des pratiques respectueuses de la nature.'
+          },
+          markets: {
+            title: 'Accès aux marchés',
+            desc: 'Nous relions les producteurs aux acheteurs locaux et internationaux, assurant des débouchés stables et équitables.'
+          },
+          support: {
+            title: 'Soutien technique',
+            desc: 'Nos agronomes et experts accompagnent les bénéficiaires pour garantir la réussite et la pérennité de chaque projet.'
+          }
+        },
+        projects: {
+          title: 'Nos projets',
+          subtitle: "Transformer l'agriculture, la pêche et l'élevage",
+          description: "Agri Konbit soutient des projets pilotes qui dynamisent les secteurs clés de l'économie rurale haïtienne. Des fermes agroécologiques aux coopératives de pêche, chaque investissement contribue à bâtir un Haïti autosuffisant, prospère et tourné vers l'avenir."
+        },
+        vision: {
+          title: 'Notre vision',
+          subtitle: 'Bâtir un avenir résilient et prospère',
+          description: "Nous rêvons d'un Haïti où chaque communauté rurale prospère grâce à une agriculture durable et inclusive. Notre vision repose sur l'innovation, la collaboration et l'autonomisation des producteurs pour construire un pays autosuffisant et fier de son potentiel.",
+          empowerment: {
+            title: 'Autonomisation',
+            desc: 'Donner aux agriculteurs, pêcheurs et éleveurs les moyens de réussir.'
+          },
+          sustainability: {
+            title: 'Durabilité',
+            desc: 'Préserver les terres, les mers et les ressources naturelles du pays.'
+          },
+          inclusion: {
+            title: 'Inclusion',
+            desc: 'Placer les communautés locales et la diaspora au cœur de chaque projet.'
+          },
+          prosperity: {
+            title: 'Prospérité',
+            desc: 'Stimuler la croissance économique et renforcer la sécurité alimentaire nationale.'
+          }
+        },
+        howToInvest: {
+          title: 'Comment investir ?',
+          subtitle: "Investissez dans l'avenir d'Haïti",
+          description: "Rejoignez Agri Konbit et participez activement à la transformation durable de l'agriculture, de la pêche et de l'élevage en Haïti. Que vous soyez un particulier, une entreprise ou une organisation, votre investissement finance des projets concrets qui changent des vies.",
+          step1: 'Choisissez un projet : Explorez notre catalogue de projets agricoles, piscicoles ou d\'élevage et sélectionnez celui qui vous inspire.',
+          step2: 'Investissez facilement : Utilisez notre plateforme sécurisée pour investir via un don, un prêt ou une prise de participation.',
+          step3: 'Suivez votre impact : Consultez en temps réel les rapports d\'avancement et l\'utilisation de vos fonds.',
+          step4: 'Participez à la vision : Devenez un acteur du changement et contribuez à bâtir le pays que nous voulons vivre.'
+        }
+      },
+      home: {
+        heroTitle: 'Investissez pour Haïti. Soutenez les agriculteurs haïtiens. Récoltons ensemble les fruits d\'un développement durable.',
+        heroSubtitle: 'AgriKonbit connecte investisseurs et agriculteurs avec transparence et traçabilité via la blockchain.',
+        exploreProjects: 'Découvrir les projets',
+        shopMarketplace: 'Accéder au marché',
+        featuredProjects: 'Projets à la une',
+        featuredProducts: 'Produits à la une',
+        ctas: {
+          invest: 'Investir',
+          buy: 'Acheter',
+          submit: 'Soumettre un projet'
+        },
+        testimonials: 'Témoignages',
+        viewAll: 'Voir tout',
+        loadingProjects: 'Chargement des projets...',
+        errorProjects: 'Impossible de charger les projets.',
+        loadingProducts: 'Chargement des produits...',
+        errorProducts: 'Impossible de charger les produits.',
+        cards: {
+          investDesc: 'Trouvez et financez des projets agricoles.',
+          buyDesc: 'Achetez des produits traçables et certifiés.',
+          submitDesc: 'Publiez votre projet et obtenez des fonds.'
+        },
+        stats: {
+          investors: 'Investisseurs',
+          funded: 'Financés',
+          farmers: 'Agriculteurs'
+        },
+        features: {
+          token: 'Dollar',
+          tokenDesc: 'Rendement 5–10%/an ou produits physiques.',
+          verified: 'Projets vérifiés',
+          verifiedDesc: 'Revue par des experts et mises à jour régulières.',
+          traceability: 'Traçabilité',
+          traceabilityDesc: 'Authenticité via NFT de lot.'
+        },
+        project: {
+          budget: 'Budget: {{amount}} DOLLAR',
+          estimatedReturn: 'Rendement estimé: {{percent}}% annuel',
+          duration: 'Durée: {{days}} jours',
+          details: 'Détails'
+        },
+        product: {
+          view: 'Voir'
+        }
+      }
+    }
+  },
+  es: {
+    translation: {
+      common: {
+        loading: 'Cargando...',
+        loadingEllipsis: 'Cargando…',
+        updatingEllipsis: 'Actualizando…',
+        pleaseLogin: 'Por favor inicie sesión',
+        or: 'o'
+      },
+      app: { name: 'AgriKonbit' },
+      roles: {
+        investor: 'Inversor',
+        farmer: 'Agricultor',
+        consumer: 'Consumidor',
+        admin: 'Administrador'
+      },
+      auth: {
+        login: {
+          title: 'Iniciar sesión en AgriKonbit',
+          success: 'Inicio de sesión exitoso',
+          failure: 'Fallo al iniciar sesión',
+          walletSuccess: 'Inicio de sesión con billetera exitoso',
+          walletFailure: 'Fallo al iniciar sesión con billetera',
+          submitting: 'Iniciando sesión...',
+          cta: 'Iniciar sesión',
+          wallet: 'Iniciar sesión con Billetera (Simulado)',
+          noAccount: '¿No tienes una cuenta?',
+          createOne: 'Crear una'
+        },
+        register: {
+          title: 'Crear tu cuenta',
+          success: 'Cuenta creada con éxito',
+          failure: 'Fallo al crear la cuenta',
+          submitting: 'Creando cuenta...',
+          cta: 'Crear cuenta',
+          haveAccount: '¿Ya tienes una cuenta?'
+        },
+        fields: {
+          email: 'Correo electrónico',
+          password: 'Contraseña',
+          fullName: 'Nombre completo',
+          role: 'Rol'
+        },
+        errors: {
+          emailRequired: 'El correo electrónico es requerido',
+          passwordRequired: 'La contraseña es requerida',
+          fullNameRequired: 'El nombre completo es requerido'
+        }
+      },
+      footer: {
+        companyDescription: 'Conectamos agricultores e inversores para un futuro agrícola sostenible mediante tecnología blockchain.',
+        platform: 'Plataforma',
+        support: 'Soporte',
+        company: 'Compañía',
+        howItWorks: 'Cómo funciona',
+        forFarmers: 'Para agricultores',
+        forInvestors: 'Para inversores',
+        marketplace: 'Mercado',
+        helpCenter: 'Centro de ayuda',
+        contactUs: 'Contáctanos',
+        terms: 'Términos del servicio',
+        privacy: 'Política de privacidad',
+        aboutUs: 'Acerca de nosotros',
+        careers: 'Carreras',
+        press: 'Prensa',
+        blog: 'Blog',
+        poweredBy: 'Impulsado por',
+        rights: 'Todos los derechos reservados.'
+      },
+      cart: {
+        title: 'Tu carrito',
+        empty: 'Tu carrito está vacío',
+        subtotal: 'Subtotal',
+        checkout: 'Proceder al pago'
+      },
+      nav: {
+        projects: 'Proyectos',
+        marketplace: 'Mercado',
+        login: 'Iniciar sesión',
+        register: 'Crear cuenta',
+        dashboard: 'Panel',
+        profile: 'Perfil',
+        admin: 'Administración',
+        logout: 'Salir',
+        cart: 'Carrito',
+        about: 'Acerca de'
+      },
+      dashboard: {
+        investor: {
+          title: '💰 Panel del Inversor',
+          welcome: 'Bienvenido a tu panel de inversor',
+          balance: 'Saldo DOLLAR',
+          totalInvested: 'Total Invertido',
+          activeProjects: 'Proyectos Activos',
+          returns: 'Rendimientos Esperados',
+          tabs: {
+            overview: '📊 Resumen',
+            investments: '💼 Mis Inversiones',
+            projects: '🌱 Proyectos',
+            wallet: '💰 Billetera',
+            transactions: '📝 Transacciones',
+            profile: '👤 Perfil'
+          }
+        },
+        consumer: {
+          title: '🛍️ Panel del Consumidor',
+          subtitle: 'Compras, trazabilidad y entregas',
+          notifications: 'Notificaciones',
+          markAll: 'Marcar todo como leído',
+          viewAll: 'Ver todo',
+          none: 'Sin notificaciones',
+          tabs: {
+            overview: '📊 Resumen',
+            orders: '🧾 Mis pedidos',
+            deliveries: '🚚 Entregas',
+            wallet: '💰 Billetera',
+            favorites: '⭐ Favoritos',
+            subscriptions: '🔁 Suscripciones',
+            profile: '👤 Perfil',
+            support: '🆘 Soporte'
+          },
+          stats: {
+            balance: 'Saldo DOLLAR',
+            totalOrders: 'Pedidos totales',
+            inProgress: 'En curso',
+            delivered: 'Entregados'
+          },
+          recentOrders: 'Mis pedidos recientes',
+          noOrders: 'Aún no hay pedidos',
+          marketplaceCard: { title: 'Mercado', desc: 'Comprar productos' },
+          deliveriesCard: { title: 'Seguimiento de entregas', desc: 'Rastrea tus paquetes' },
+          open: 'Abrir'
+        }
+      },
+      profile: {
+        title: 'Mi Perfil',
+        loading: 'Cargando perfil...',
+        loadError: 'Error al cargar el perfil',
+        updateSuccess: '¡Perfil actualizado con éxito!',
+        updateError: 'Error al actualizar',
+        photo: {
+          alt: 'Perfil',
+          tooLarge: 'La imagen no debe exceder 5 MB',
+          invalidType: 'El archivo debe ser una imagen',
+          updated: '¡Foto de perfil actualizada!',
+          uploadError: 'Error al subir la imagen',
+          uploading: 'Subiendo...',
+          change: '📷 Cambiar foto',
+          delete: '🗑️ Eliminar foto',
+          confirmDelete: '¿Realmente desea eliminar su foto de perfil?',
+          deleted: 'Foto de perfil eliminada',
+          deleteError: 'Error al eliminar'
+        },
+        theme: {
+          title: '🎨 Tema',
+          changed: 'Tema cambiado: {{theme}}',
+          light: 'Claro',
+          dark: 'Oscuro',
+          auto: 'Auto',
+          lightLabel: 'Claro ☀️',
+          darkLabel: 'Oscuro 🌙',
+          autoLabel: 'Auto 🔄',
+          error: 'Error al cambiar el tema'
+        },
+        account: {
+          title: '💼 Cuenta',
+          kycStatus: 'Estado KYC',
+          kycUnknown: 'no verificado',
+          balance: 'Saldo DOLLAR'
+        },
+        info: {
+          title: '📋 Información Personal',
+          fullName: 'Nombre completo *',
+          fullNameShort: 'Nombre completo',
+          email: 'Correo',
+          phone: 'Teléfono',
+          country: 'País',
+          city: 'Ciudad',
+          address: 'Dirección',
+          bio: 'Bio / Descripción (máx 500 caracteres)',
+          bioShort: 'Bio',
+          bioPlaceholder: 'Cuéntanos sobre ti...',
+          bioCount: '{{count}}/500 caracteres'
+        },
+        security: {
+          title: '🔐 Seguridad',
+          changePassword: 'Cambiar contraseña',
+          currentPassword: 'Contraseña actual',
+          newPassword: 'Nueva contraseña',
+          confirmPassword: 'Confirmar contraseña'
+        },
+        password: {
+          mismatch: 'Las contraseñas no coinciden',
+          tooShort: 'La contraseña debe tener al menos 6 caracteres',
+          changed: '¡Contraseña cambiada con éxito!',
+          changeError: 'Error al cambiar la contraseña'
+        }
+      },
+      profilePage: {
+        header: '👤 Mi Perfil',
+        edit: '✏️ Editar',
+        save: 'Guardar',
+        saving: 'Guardando...',
+        cancel: 'Cancelar',
+        fields: {
+          fullName: 'Nombre completo',
+          email: 'Correo',
+          phone: 'Teléfono',
+          role: 'Rol',
+          country: 'País',
+          city: 'Ciudad',
+          address: 'Dirección'
+        },
+        accountInfo: '💼 Información de la cuenta',
+        kycStatus: 'Estado KYC',
+        kyc: {
+          verified: 'verified',
+          pending: 'pending',
+          notVerified: 'not_verified'
+        },
+        balance: 'Saldo DOLLAR'
+      },
+      common: {
+        cancel: 'Cancelar',
+        save: '💾 Guardar'
+      },
+      orders: {
+        loadError: 'No se pudo cargar el pedido',
+        statusUpdated: 'Estado actualizado',
+        updateFailed: 'Fallo la actualización',
+        manageTitle: 'Gestionar Pedido',
+        fields: {
+          orderNumber: 'Número de pedido',
+          status: 'Estado',
+          customer: 'Cliente',
+          total: 'Total',
+          orderDate: 'Fecha del pedido',
+          paymentMethod: 'Método de pago',
+          shippingAddress: 'Dirección de envío',
+          notes: 'Notas'
+        },
+        status: {
+          pending: 'Pendiente',
+          paid: 'Pagado',
+          shipped: 'Enviado',
+          delivered: 'Entregado',
+          cancelled: 'Cancelado',
+          manage: 'Gestión del Estado',
+          current: 'Estado actual',
+          pendingHint: 'Esperando pago',
+          paidHint: 'Pedido pagado, listo para enviar',
+          shippedHint: 'Pedido enviado, esperando confirmación de entrega',
+          deliveredHint: 'Pedido entregado y finalizado',
+          cancelledHint: 'Pedido cancelado'
+        },
+        items: {
+          title: 'Artículos Pedidos',
+          qty: 'Cantidad'
+        },
+        actions: {
+          markShipped: 'Marcar como enviado',
+          markDelivered: 'Marcar como entregado',
+          cancelOrder: 'Cancelar pedido',
+          noneAvailable: 'No hay acciones disponibles para este estado'
+        }
+      },
+      marketplace: {
+        title: 'Mercado',
+        loadingProducts: 'Cargando productos...',
+        loadError: 'No se pudieron cargar los productos.',
+        unknownError: 'Error desconocido',
+        filters: {
+          title: 'Filtros',
+          search: 'Buscar',
+          searchPlaceholder: 'Mango, miel...',
+          category: 'Categoría',
+          all: 'Todos',
+          originCountry: 'País de origen',
+          originPlaceholder: 'Burkina Faso, ...',
+          organicOnly: 'Solo orgánicos'
+        },
+        categories: {
+          cereals: 'Cereales',
+          fruits: 'Frutas',
+          vegetables: 'Verduras',
+          honey: 'Miel',
+          dairy: 'Lácteos',
+          meat: 'Carne'
+        },
+        product: {
+          by: 'Por',
+          inStock: 'en stock',
+          details: 'Detalles',
+          addToCart: 'Añadir al carrito'
+        }
+      },
+      productDetail: {
+        loading: 'Cargando producto...',
+        loadError: 'No se pudo cargar el producto.',
+        inStock: 'en stock',
+        addToCart: 'Añadir al carrito',
+        viewTraceability: 'Ver Trazabilidad',
+        origin: 'Origen',
+        harvestDate: 'Fecha de cosecha',
+        certifiedOrganic: 'Orgánico Certificado',
+        yes: 'Sí'
+      },
+      about: {
+        videoTitle: 'Video explicativo del proyecto',
+        whyInvest: {
+          title: '¿Por qué invertir con Agri Konbit?',
+          subtitle: 'Su compromiso con el cambio sostenible',
+          description: 'Agri Konbit es más que una plataforma de inversión: es un movimiento colectivo para el renacimiento de la agricultura haitiana. Al invertir con nosotros, apoya iniciativas concretas que crean empleos, fortalecen la seguridad alimentaria y protegen nuestro medio ambiente.',
+          impact: {
+            title: 'Impacto medible',
+            desc: 'Cada inversión mejora directamente los ingresos de los agricultores y reduce la dependencia alimentaria del país.'
+          },
+          transparency: {
+            title: 'Transparencia total',
+            desc: 'A través de nuestro panel digital, realiza un seguimiento del progreso de cada proyecto y el uso de sus fondos.'
+          },
+          collaborative: {
+            title: 'Enfoque colaborativo',
+            desc: 'Inspirado en el concepto tradicional de konbit, nuestro modelo se basa en el trabajo colectivo y la participación activa de las comunidades locales.'
+          },
+          sustainable: {
+            title: 'Proyectos sostenibles',
+            desc: 'Promovemos la agroecología, la gestión responsable de recursos y prácticas respetuosas con la naturaleza.'
+          },
+          markets: {
+            title: 'Acceso a mercados',
+            desc: 'Conectamos a los productores con compradores locales e internacionales, asegurando salidas estables y justas.'
+          },
+          support: {
+            title: 'Apoyo técnico',
+            desc: 'Nuestros agrónomos y expertos acompañan a los beneficiarios para garantizar el éxito y la sostenibilidad de cada proyecto.'
+          }
+        },
+        projects: {
+          title: 'Nuestros proyectos',
+          subtitle: 'Transformando la agricultura, la pesca y la ganadería',
+          description: 'Agri Konbit apoya proyectos piloto que dinamizan sectores clave de la economía rural haitiana. Desde granjas agroecológicas hasta cooperativas pesqueras, cada inversión ayuda a construir un Haití autosuficiente, próspero y orientado al futuro.'
+        },
+        vision: {
+          title: 'Nuestra visión',
+          subtitle: 'Construir un futuro resiliente y próspero',
+          description: 'Soñamos con un Haití donde cada comunidad rural prospere a través de una agricultura sostenible e inclusiva. Nuestra visión se basa en la innovación, la colaboración y el empoderamiento de los productores para construir un país autosuficiente y orgulloso de su potencial.',
+          empowerment: {
+            title: 'Empoderamiento',
+            desc: 'Dar a los agricultores, pescadores y ganaderos los medios para tener éxito.'
+          },
+          sustainability: {
+            title: 'Sostenibilidad',
+            desc: 'Preservar las tierras, los mares y los recursos naturales del país.'
+          },
+          inclusion: {
+            title: 'Inclusión',
+            desc: 'Colocar a las comunidades locales y la diáspora en el corazón de cada proyecto.'
+          },
+          prosperity: {
+            title: 'Prosperidad',
+            desc: 'Estimular el crecimiento económico y fortalecer la seguridad alimentaria nacional.'
+          }
+        },
+        howToInvest: {
+          title: '¿Cómo invertir?',
+          subtitle: 'Invierta en el futuro de Haití',
+          description: 'Únase a Agri Konbit y participe activamente en la transformación sostenible de la agricultura, la pesca y la ganadería en Haití. Ya sea un individuo, una empresa o una organización, su inversión financia proyectos concretos que cambian vidas.',
+          step1: 'Elija un proyecto: Explore nuestro catálogo de proyectos agrícolas, piscícolas o ganaderos y seleccione el que le inspire.',
+          step2: 'Invierta fácilmente: Use nuestra plataforma segura para invertir mediante donación, préstamo o participación accionaria.',
+          step3: 'Siga su impacto: Consulte informes de progreso y uso de sus fondos en tiempo real.',
+          step4: 'Participe en la visión: Conviértase en un agente de cambio y ayude a construir el país en el que queremos vivir.'
+        }
+      },
+      home: {
+        heroTitle: 'Invierta en agricultura. Empodere a los agricultores. Rendimientos sostenibles.',
+        heroSubtitle: 'AgriKonbit conecta inversores y agricultores con transparencia y trazabilidad en blockchain.',
+        exploreProjects: 'Explorar Proyectos',
+        shopMarketplace: 'Ir al Mercado',
+        featuredProjects: 'Proyectos destacados',
+        featuredProducts: 'Productos destacados',
+        ctas: {
+          invest: 'Invertir',
+          buy: 'Comprar',
+          submit: 'Enviar proyecto'
+        },
+        testimonials: 'Testimonios',
+        viewAll: 'Ver todo',
+        loadingProjects: 'Cargando proyectos...',
+        errorProjects: 'No se pudieron cargar los proyectos.',
+        loadingProducts: 'Cargando productos...',
+        errorProducts: 'No se pudieron cargar los productos.',
+        cards: {
+          investDesc: 'Encuentre y financie proyectos agrícolas.',
+          buyDesc: 'Compre productos trazables y certificados.',
+          submitDesc: 'Publique su proyecto y obtenga financiación.'
+        },
+        stats: {
+          investors: 'Inversores',
+          funded: 'Financiados',
+          farmers: 'Agricultores'
+        },
+        features: {
+          token: 'Dólar',
+          tokenDesc: 'Rendimiento 5–10%/año o productos físicos.',
+          verified: 'Proyectos verificados',
+          verifiedDesc: 'Revisión experta y actualizaciones regulares.',
+          traceability: 'Trazabilidad',
+          traceabilityDesc: 'Autenticidad mediante NFT de lote.'
+        },
+        project: {
+          budget: 'Presupuesto: {{amount}} DOLLAR',
+          estimatedReturn: 'Rendimiento estimado: {{percent}}% anual',
+          duration: 'Duración: {{days}} días',
+          details: 'Detalles'
+        },
+        product: {
+          view: 'Ver'
+        }
+      },
+      checkoutPage: {
+        title: 'Pagar',
+        empty: 'Tu carrito está vacío.',
+        totalsUSD: 'Total (USD)',
+        totalsGYT: 'Total (DOLLAR)',
+        yourBalance: 'Tu saldo DOLLAR',
+        insufficient: 'Saldo insuficiente. Deposita DOLLAR antes de continuar.',
+        payButton: 'Pagar con Billetera DOLLAR',
+        processing: 'Procesando…',
+        tip: 'Consejo: Deposita DOLLAR desde tu Panel.',
+        success: 'Pedido realizado con éxito',
+        createFailed: 'Falló la creación del pedido',
+        failed: 'Pago fallido'
+      },
+      walletPage: {
+        title: 'Billetera DOLLAR',
+        topup: 'Recargar',
+        balanceAvailable: 'Saldo disponible',
+        approx: '≈ ${{usd}} USD @ {{rate}} USD/$',
+        topupCardTitle: 'Recargar DOLLAR',
+        topupCardDesc: 'Stripe o PayPal (demo)',
+        openForm: 'Abrir formulario',
+        infoTitle: 'Información',
+        infoDesc: 'Tasa indicativa • Sin tarifas reales • Transacciones de prueba',
+        historyTitle: 'Historial',
+        historySubtitle: 'Últimas operaciones',
+        noTransactions: 'Sin transacciones.',
+        prev: 'Anterior',
+        next: 'Siguiente',
+        pageXofY: 'Página {{page}} / {{pages}}',
+        modalTitle: 'Recargar billetera',
+        amountLabel: 'Monto (DOLLAR)',
+        amountPh: 'Ej: 50',
+        providerLabel: 'Proveedor de pago',
+        stripe: 'Stripe',
+        paypal: 'PayPal',
+        cancel: 'Cancelar',
+        continue: 'Continuar',
+        demoNote: 'Demo: sin tarifas reales, transacciones simuladas.',
+        summaryAmount: 'Monto',
+        summaryFees: 'Tarifas (simuladas)',
+        summaryTotal: 'Total cobrado',
+        summaryApprox: '≈ ${{usd}} USD • Proveedor: {{provider}}',
+        edit: 'Editar',
+        confirm: 'Confirmar',
+        confirming: 'Procesando…',
+        toastInvalid: 'Monto inválido',
+        toastTopupOk: 'Recarga completada',
+        toastTopupFail: 'Fallo la recarga'
+      },
+      projectsPage: {
+        title: 'Proyectos agrícolas',
+        total: '{{count}} proyectos',
+        loading: 'Cargando proyectos...',
+        error: 'No se pudieron cargar los proyectos.',
+        unknownError: 'Error desconocido',
+        budget: 'Presupuesto: {{amount}} DOLLAR',
+        return: 'Rendimiento: {{percent}}% anual',
+        duration: 'Duración: {{days}} días',
+        details: 'Detalles'
+      }
+    }
+  }
+};
+
+// Determine initial language: saved in localStorage, else browser, else FR
+let initialLng = 'fr';
+try {
+  const saved = typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem('i18n_lng') : null;
+  if (saved) initialLng = saved;
+  else if (typeof navigator !== 'undefined' && navigator.language) {
+    initialLng = navigator.language.slice(0, 2);
+  }
+} catch (_) {
+  // ignore
+}
+
+i18n.use(initReactI18next).init({
+  resources,
+  lng: initialLng,
+  fallbackLng: 'fr',
+  interpolation: { escapeValue: false }
+});
+
+// Persist language changes and update <html> attributes
+i18n.on('languageChanged', (lng) => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem('i18n_lng', lng);
+    }
+  } catch (_) { /* ignore */ }
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = lng;
+    const rtl = ['ar', 'fa', 'he', 'ur'];
+    document.documentElement.dir = rtl.includes(lng) ? 'rtl' : 'ltr';
+  }
+});
+
+export default i18n;

@@ -12,7 +12,7 @@ const Support = () => {
         <div className="card">
           <div className="font-semibold mb-2">FAQ</div>
           <ul className="list-disc ml-6 text-sm text-gray-700">
-            <li>Paiement avec GYT</li>
+            <li>Paiement avec DOLLAR</li>
             <li>Suivi de livraison</li>
             <li>Traçabilité blockchain</li>
           </ul>
