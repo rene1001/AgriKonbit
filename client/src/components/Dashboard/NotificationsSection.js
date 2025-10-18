@@ -1,8 +1,10 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useTranslation } from 'react-i18next';
 import { api, endpoints } from '../../utils/api';
 
 const NotificationsSection = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { data: notificationsData } = useQuery(['notifications-all'], async () => {
@@ -156,7 +158,7 @@ const NotificationsSection = () => {
         {(!notificationsData?.notifications || notificationsData.notifications.length === 0) && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔕</div>
-            <p className="text-gray-500 text-lg">Aucune notification pour le moment</p>
+            <p className="text-gray-500 text-lg">{t('dashboardComponents.notifications.noNotifications')}</p>
           </div>
         )}
       </div>

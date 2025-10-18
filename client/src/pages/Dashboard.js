@@ -1,16 +1,18 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import InvestorDashboard from './Dashboard/InvestorDashboard';
 import FarmerDashboard from './Dashboard/FarmerDashboard';
 import ConsumerDashboard from './Dashboard/ConsumerDashboard';
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Chargement...</div>
+        <div className="text-lg">{t('dashboard.loading')}</div>
       </div>
     );
   }
@@ -18,7 +20,7 @@ const Dashboard = () => {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Veuillez vous connecter</div>
+        <div className="text-lg">{t('dashboard.pleaseLogin')}</div>
       </div>
     );
   }

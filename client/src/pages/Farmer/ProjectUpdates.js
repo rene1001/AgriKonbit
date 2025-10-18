@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api, endpoints } from '../../utils/api';
 import toast from 'react-hot-toast';
 import ImageUploader from '../../components/common/ImageUploader';
 
 const ProjectUpdates = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
@@ -55,28 +57,28 @@ const ProjectUpdates = () => {
     <div className="py-10 bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Ajouter une mise à jour</h1>
-          <Link to="/dashboard" className="text-sm text-gray-600 hover:underline">Retour</Link>
+          <h1 className="text-2xl font-bold">{t('farmer.projectUpdates.title')}</h1>
+          <Link to="/dashboard" className="text-sm text-gray-600 hover:underline">{t('farmer.projectUpdates.back')}</Link>
         </div>
         {!project ? (
-          <div className="bg-white p-6 rounded shadow">Chargement…</div>
+          <div className="bg-white p-6 rounded shadow">{t('farmer.projectUpdates.loading')}</div>
         ) : (
           <div className="bg-white p-6 rounded shadow space-y-4">
             <div>
-              <label className="label">Titre</label>
+              <label className="label">{t('farmer.projectUpdates.titleLabel')}</label>
               <input className="input w-full" value={form.title} onChange={(e)=>onChange('title', e.target.value)} />
             </div>
             <div>
-              <label className="label">Contenu</label>
+              <label className="label">{t('farmer.projectUpdates.content')}</label>
               <textarea className="input w-full" rows={8} value={form.content} onChange={(e)=>onChange('content', e.target.value)} />
             </div>
             <div className="flex items-center gap-2">
               <input id="isPublic" type="checkbox" checked={form.isPublic} onChange={(e)=> onChange('isPublic', e.target.checked)} />
-              <label htmlFor="isPublic" className="text-sm">Public</label>
+              <label htmlFor="isPublic" className="text-sm">{t('farmer.projectUpdates.public')}</label>
             </div>
 
             <div className="space-y-2">
-              <label className="label">Images</label>
+              <label className="label">{t('farmer.projectUpdates.images')}</label>
               <div className="flex gap-2 items-center">
                 <input className="input flex-1" placeholder="https://..." value={imageUrl} onChange={(e)=>setImageUrl(e.target.value)} />
                 <button type="button" className="btn" onClick={()=>{

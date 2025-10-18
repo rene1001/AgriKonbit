@@ -15,7 +15,19 @@
     "docker:up": "cd docker && docker compose up --build",
     "docker:down": "cd docker && docker compose down -v",
     "e2e:install": "npx playwright install --with-deps",
-    "e2e": "npx playwright test"
+    "e2e": "npx playwright test",
+    "test:all": "npm run test:functional && npm run test:performance && npm run test:security && npm run test:ui && npm run test:integration",
+    "test:functional": "jest tests/functional --verbose",
+    "test:performance": "jest tests/performance --verbose",
+    "test:security": "jest tests/security --verbose",
+    "test:ui": "playwright test tests/ui",
+    "test:seo": "playwright test tests/seo",
+    "test:accessibility": "playwright test tests/accessibility",
+    "test:compatibility": "playwright test tests/compatibility",
+    "test:integration": "jest tests/integration --verbose",
+    "test:regression": "jest tests/regression --verbose",
+    "test:content": "playwright test tests/content",
+    "test:report": "node scripts/generate-test-report.js"
   },
   "keywords": [
     "agriculture",
@@ -27,8 +39,13 @@
   "author": "AgriKonbit Team",
   "license": "MIT",
   "devDependencies": {
+    "@axe-core/playwright": "^4.8.3",
     "@playwright/test": "^1.55.1",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "jest": "^29.7.0",
+    "lighthouse": "^11.4.0",
+    "pa11y": "^7.0.0",
+    "supertest": "^6.3.3"
   },
   "dependencies": {
     "axios": "^1.12.2",

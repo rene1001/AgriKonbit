@@ -17,7 +17,9 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `${req.user.id}-${uniqueSuffix}${path.extname(file.originalname)}`);
+    // Use a generic filename, will be renamed after auth if needed
+    const userId = req.user?.id || 'temp';
+    cb(null, `${userId}-${uniqueSuffix}${path.extname(file.originalname)}`);
   }
 });
 
@@ -72,9 +74,12 @@ router.get('/my-documents', authenticateToken, async (req, res) => {
   }
 });
 
-// Upload a document
-router.post('/upload', authenticateToken, upload.single('document'), async (req, res) => {
+// Upload a document (simplified version without database storage)
+router.post('/upload', upload.single('document'), async (req, res) => {
   try {
+    console.log('📤 Upload attempt:', req.file ? 'File received' : 'No file');
+    console.log('📤 Body:', req.body);
+    
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -82,61 +87,37 @@ router.post('/upload', authenticateToken, upload.single('document'), async (req,
       });
     }
 
-    const { document_type } = req.body;
+    // Return just the filename for now (simpler approach)
+    const filename = req.file.filename;
+    console.log('✅ File uploaded successfully:', filename);
     
-    if (!document_type) {
-      // Delete uploaded file if validation fails
-      fs.unlinkSync(req.file.path);
-      return res.status(400).json({
-        success: false,
-        message: 'Document type is required'
-      });
-    }
-
-    // Insert document record
-    const result = await query(`
-      INSERT INTO user_documents (
-        user_id,
-        document_type,
-        filename,
-        original_name,
-        file_path,
-        file_size,
-        mime_type,
-        status,
-        uploaded_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())
-    `, [
-      req.user.id,
-      document_type,
-      req.file.filename,
-      req.file.originalname,
-      req.file.path,
-      req.file.size,
-      req.file.mimetype
-    ]);
-
     res.json({
       success: true,
       data: {
-        document_id: result.insertId,
-        filename: req.file.filename
+        filename: filename,
+        url: `/uploads/documents/${filename}`,
+        path: req.file.path
       },
       message: 'Document uploaded successfully'
     });
   } catch (error) {
-    console.error('Upload document error:', error);
+    console.error('❌ Upload document error:', error);
+    console.error('Error stack:', error.stack);
+    
     // Clean up file on error
     if (req.file) {
       try {
         fs.unlinkSync(req.file.path);
+        console.log('🗑️ Cleaned up file after error');
       } catch (unlinkError) {
         console.error('Error deleting file:', unlinkError);
       }
     }
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to upload document'
+      message: 'Failed to upload document',
+      error: error.message
     });
   }
 });

@@ -11,11 +11,12 @@ const AddProduct = () => {
   const [form, setForm] = useState({
     name: '',
     description: '',
-    price: 0,
+    priceUsd: 0,
     stock: 0,
-    category: 'crops',
-    unit: 'kg',
-    location: '',
+    category: 'vegetables',
+    originCountry: 'Haiti',
+    originRegion: '',
+    organicCertified: false,
     images: []
   });
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,7 @@ const AddProduct = () => {
         return;
       }
 
-      if (!(parseFloat(form.price) > 0)) {
+      if (!(parseFloat(form.priceUsd) > 0)) {
         toast.error(t('addProduct.toastPrice'));
         return;
       }
@@ -48,7 +49,7 @@ const AddProduct = () => {
         return;
       }
 
-      if (!form.location.trim() || form.location.trim().length < 3) {
+      if (!form.originRegion.trim() || form.originRegion.trim().length < 3) {
         toast.error(t('addProduct.toastLocation'));
         return;
       }
@@ -108,8 +109,8 @@ const AddProduct = () => {
                 type="number"
                 step="0.01"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                value={form.price}
-                onChange={(e) => onChange('price', e.target.value)}
+                value={form.priceUsd}
+                onChange={(e) => onChange('priceUsd', e.target.value)}
                 placeholder={t('addProduct.pricePh')}
               />
             </div>
@@ -126,19 +127,14 @@ const AddProduct = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('addProduct.unitLabel')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('addProduct.organicLabel', 'Bio certifié?')}</label>
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                value={form.unit}
-                onChange={(e) => onChange('unit', e.target.value)}
+                value={form.organicCertified}
+                onChange={(e) => onChange('organicCertified', e.target.value === 'true')}
               >
-                <option value="kg">{t('addProduct.unit.kg')}</option>
-                <option value="g">{t('addProduct.unit.g')}</option>
-                <option value="l">{t('addProduct.unit.l')}</option>
-                <option value="ml">{t('addProduct.unit.ml')}</option>
-                <option value="piece">{t('addProduct.unit.piece')}</option>
-                <option value="box">{t('addProduct.unit.box')}</option>
-                <option value="bottle">{t('addProduct.unit.bottle')}</option>
+                <option value="false">Non</option>
+                <option value="true">Oui</option>
               </select>
             </div>
           </div>
@@ -151,14 +147,13 @@ const AddProduct = () => {
                 value={form.category}
                 onChange={(e) => onChange('category', e.target.value)}
               >
-                <option value="crops">{t('addProduct.category.crops')}</option>
-                <option value="livestock">{t('addProduct.category.livestock')}</option>
-                <option value="dairy">{t('addProduct.category.dairy')}</option>
-                <option value="honey">{t('addProduct.category.honey')}</option>
-                <option value="fruits">{t('addProduct.category.fruits')}</option>
-                <option value="vegetables">{t('addProduct.category.vegetables')}</option>
-                <option value="grains">{t('addProduct.category.grains')}</option>
-                <option value="other">{t('addProduct.category.other')}</option>
+                <option value="cereals">Céréales</option>
+                <option value="fruits">Fruits</option>
+                <option value="vegetables">Légumes</option>
+                <option value="honey">Miel</option>
+                <option value="dairy">Produits laitiers</option>
+                <option value="meat">Viande</option>
+                <option value="other">Autre</option>
               </select>
             </div>
 
@@ -166,9 +161,9 @@ const AddProduct = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">{t('addProduct.locationLabel')}</label>
               <input
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                value={form.location}
-                onChange={(e) => onChange('location', e.target.value)}
-                placeholder={t('addProduct.locationPh')}
+                value={form.originRegion}
+                onChange={(e) => onChange('originRegion', e.target.value)}
+                placeholder={t('addProduct.locationPh', 'Ex: Port-au-Prince')}
               />
             </div>
           </div>

@@ -1,45 +1,22 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
-const ProjectsSection = ({ stats, myProjects }) => {
+const ProjectsSection = ({ projects }) => {
   const { t } = useTranslation();
+  
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">{t('dashboard.projects.header')}</h2>
+        <h2 className="text-xl font-bold text-gray-900">🌱 Mes Projets</h2>
         <Link to="/farmer/submit-project" className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-          {t('dashboard.projects.newProject')}
+          + Nouveau Projet
         </Link>
-      </div>
-      
-      {/* Stats Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <p className="text-sm text-blue-600 font-medium">{t('dashboard.projects.stats.total')}</p>
-          <p className="text-2xl font-bold text-blue-900">{stats?.projects?.total_projects || 0}</p>
-        </div>
-        <div className="bg-yellow-50 rounded-lg p-4">
-          <p className="text-sm text-yellow-600 font-medium">{t('dashboard.projects.stats.pending')}</p>
-          <p className="text-2xl font-bold text-yellow-900">{stats?.projects?.pending_projects || 0}</p>
-        </div>
-        <div className="bg-green-50 rounded-lg p-4">
-          <p className="text-sm text-green-600 font-medium">{t('dashboard.projects.stats.validated')}</p>
-          <p className="text-2xl font-bold text-green-900">{stats?.projects?.validated_projects || 0}</p>
-        </div>
-        <div className="bg-purple-50 rounded-lg p-4">
-          <p className="text-sm text-purple-600 font-medium">{t('dashboard.projects.stats.active')}</p>
-          <p className="text-2xl font-bold text-purple-900">{stats?.projects?.active_projects || 0}</p>
-        </div>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600 font-medium">{t('dashboard.projects.stats.completed')}</p>
-          <p className="text-2xl font-bold text-gray-900">{stats?.projects?.completed_projects || 0}</p>
-        </div>
       </div>
 
       {/* Projects List */}
       <div className="space-y-4">
-        {myProjects?.map((project) => (
+        {projects?.map((project) => (
           <div key={project.id} className="border rounded-lg p-6 hover:shadow-md transition">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -60,19 +37,19 @@ const ProjectsSection = ({ stats, myProjects }) => {
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div>
-                    <p className="text-xs text-gray-500">Budget</p>
+                    <p className="text-xs text-gray-500">{t('dashboardComponents.projects.budget')}</p>
                     <p className="text-sm font-semibold text-gray-900">{project.budget_gyt} DOLLAR</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Financé</p>
+                    <p className="text-xs text-gray-500">{t('dashboardComponents.projects.funded')}</p>
                     <p className="text-sm font-semibold text-gray-900">{project.funding_percentage || 0}%</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Investisseurs</p>
+                    <p className="text-xs text-gray-500">{t('dashboardComponents.projects.investors')}</p>
                     <p className="text-sm font-semibold text-gray-900">{project.investor_count || 0}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Retour estimé</p>
+                    <p className="text-xs text-gray-500">{t('dashboardComponents.projects.estimatedReturn')}</p>
                     <p className="text-sm font-semibold text-gray-900">{project.estimated_return_pct || 0}%</p>
                   </div>
                 </div>
@@ -119,11 +96,11 @@ const ProjectsSection = ({ stats, myProjects }) => {
           </div>
         ))}
 
-        {(!myProjects || myProjects.length === 0) && (
+        {(!projects || projects.length === 0) && (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg mb-4">{t('dashboard.overview.recentProjects.none')}</p>
+            <p className="text-gray-500 text-lg mb-4">Aucun projet pour le moment</p>
             <Link to="/farmer/submit-project" className="inline-block px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-              {t('dashboard.projects.newProject')}
+              + Nouveau Projet
             </Link>
           </div>
         )}

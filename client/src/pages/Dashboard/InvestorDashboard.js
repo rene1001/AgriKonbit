@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FiShoppingCart } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from 'react-query';
@@ -94,11 +95,20 @@ const InvestorDashboard = () => {
       setActiveTab(location.state.activeTab);
     }
   }, [location.state]);
+  
+  // Récupérer les commandes de l'utilisateur
+  const { data: ordersData } = useQuery(['investor-orders'], async () => {
+    const res = await api.get(endpoints.orders.list, { params: { limit: 10 } });
+    return res.data.data;
+  });
+  
+  const investorOrders = ordersData?.orders || [];
   const [depositAmount, setDepositAmount] = useState(100);
   const [withdrawAmount, setWithdrawAmount] = useState(0);
   const [investModal, setInvestModal] = useState({ open: false, projectId: null, amount: 10 });
   const [withdrawModal, setWithdrawModal] = useState({ open: false, amount: 0, method: 'bank_transfer', destination: '', note: '' });
   const [deliveryModal, setDeliveryModal] = useState({ open: false, investmentId: '', preferredDate: '', address: '', notes: '' });
+  const [trackingModal, setTrackingModal] = useState({ open: false, orderId: null, orderNumber: '', status: '', estimatedDelivery: '' });
   const [projectFilters, setProjectFilters] = useState({
     category: '',
     location: '',
@@ -537,6 +547,7 @@ const InvestorDashboard = () => {
               { id: 'overview', label: 'Vue d\'ensemble', icon: ChartBarIcon },
               { id: 'investments', label: 'Mes Investissements', icon: TrendingUpIcon },
               { id: 'projects', label: 'Projets Disponibles', icon: PlusIcon },
+              { id: 'purchases', label: 'Mes Achats', icon: FiShoppingCart },
               { id: 'returns', label: 'Rendements', icon: CurrencyDollarIcon },
               { id: 'communication', label: 'Communication', icon: ChatBubbleLeftRightIcon },
               { id: 'settings', label: 'Paramètres', icon: Cog6ToothIcon }
@@ -1060,6 +1071,90 @@ const InvestorDashboard = () => {
           </div>
         )}
 
+        {activeTab === 'purchases' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Mes Achats</h2>
+            
+            <div className="bg-white rounded-xl p-6 shadow-sm border">
+              <h3 className="font-semibold text-gray-900 mb-4">🛒 Produits Achetés</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">N° Commande</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Produits</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Total</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Date</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Statut</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-500">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {investorOrders && investorOrders.length > 0 ? (
+                      investorOrders.map((order) => (
+                        <tr key={order.id} className="border-b border-gray-100">
+                          <td className="py-3 px-4 text-sm font-medium">#{order.order_number || order.id}</td>
+                          <td className="py-3 px-4 text-sm">
+                            <div className="flex flex-col gap-1">
+                              {order.items && order.items.map((item, idx) => (
+                                <div key={idx} className="text-sm">
+                                  {item.quantity}x {item.product_name}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-sm font-medium">
+                            {order.total_amount} DOLLAR
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-600">
+                            {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' : 
+                              order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {order.status === 'delivered' ? 'Livré' :
+                               order.status === 'processing' ? 'En traitement' :
+                               order.status === 'shipped' ? 'Expédié' : 'En attente'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            <div className="flex gap-2">
+                              <button 
+                                className="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700"
+                                onClick={() => {
+                                  setTrackingModal({
+                                    open: true,
+                                    orderId: order.id,
+                                    orderNumber: order.order_number || order.id,
+                                    status: order.status,
+                                    estimatedDelivery: order.estimated_delivery || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+                                  });
+                                }}
+                              >
+                                Suivre
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="py-6 text-center text-gray-500 text-sm">
+                          Vous n'avez pas encore effectué d'achats. Découvrez nos produits dans la section Projets Disponibles.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'settings' && (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Profil & Paramètres</h2>
@@ -1200,9 +1295,83 @@ const InvestorDashboard = () => {
             </div>
           </div>
         )}
+
+        {/* Tracking Modal */}
+        {trackingModal.open && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Suivi de la commande #{trackingModal.orderNumber}</h3>
+              
+              <div className="space-y-6">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Statut:</span>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      trackingModal.status === 'delivered' ? 'bg-green-100 text-green-800' : 
+                      trackingModal.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                      trackingModal.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {trackingModal.status === 'delivered' ? 'Livré' :
+                       trackingModal.status === 'processing' ? 'En traitement' :
+                       trackingModal.status === 'shipped' ? 'Expédié' : 'En attente'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Livraison estimée:</span>
+                    <span className="text-sm text-gray-600">
+                      {new Date(trackingModal.estimatedDelivery).toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="w-full bg-gray-100 rounded-full h-2.5">
+                  <div className={`h-2.5 rounded-full ${
+                    trackingModal.status === 'delivered' ? 'bg-green-500 w-full' : 
+                    trackingModal.status === 'shipped' ? 'bg-blue-500 w-3/4' :
+                    trackingModal.status === 'processing' ? 'bg-blue-500 w-2/4' :
+                    'bg-yellow-500 w-1/4'
+                  }`}></div>
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2 text-xs text-center">
+                  <div className={`${trackingModal.status ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                    Commande reçue
+                  </div>
+                  <div className={`${trackingModal.status === 'processing' || trackingModal.status === 'shipped' || trackingModal.status === 'delivered' ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                    En préparation
+                  </div>
+                  <div className={`${trackingModal.status === 'shipped' || trackingModal.status === 'delivered' ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                    Expédiée
+                  </div>
+                  <div className={`${trackingModal.status === 'delivered' ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                    Livrée
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-sm text-blue-800">
+                    <span className="font-medium">Information:</span> Vous recevrez un email de mise à jour à chaque changement de statut de votre commande.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                  onClick={() => setTrackingModal({ open: false, orderId: null, orderNumber: '', status: '', estimatedDelivery: '' })}
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default InvestorDashboard;
+

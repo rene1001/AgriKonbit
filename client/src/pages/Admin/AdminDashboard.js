@@ -150,15 +150,15 @@ const AdminDashboard = () => {
   };
 
   const sections = [
-    { id: 'overview', icon: '📊', label: 'Vue d\'ensemble' },
-    { id: 'treasury', icon: '💰', label: 'Trésorerie Plateforme' },
-    { id: 'funds', icon: '💵', label: 'Gestion des Fonds' },
-    { id: 'communication', icon: '📢', label: 'Communication' },
-    { id: 'reports', icon: '📈', label: 'Rapports & Exports' },
-    { id: 'analytics', icon: '📊', label: 'Analytiques' },
-    { id: 'config', icon: '⚙️', label: 'Configuration' },
-    { id: 'validation', icon: '✅', label: 'Validation de Projets' },
-    { id: 'activity', icon: '🕒', label: 'Activité Récente' },
+    { id: 'overview', icon: '📊', label: t('dashboard.admin.sections.overview') },
+    { id: 'treasury', icon: '💰', label: t('dashboard.admin.sections.treasury') },
+    { id: 'funds', icon: '💵', label: t('dashboard.admin.sections.funds') },
+    { id: 'communication', icon: '📢', label: t('dashboard.admin.sections.communication') },
+    { id: 'reports', icon: '📈', label: t('dashboard.admin.sections.reports') },
+    { id: 'analytics', icon: '📊', label: t('dashboard.admin.sections.analytics') },
+    { id: 'config', icon: '⚙️', label: t('dashboard.admin.sections.config') },
+    { id: 'validation', icon: '✅', label: t('dashboard.admin.sections.validation') },
+    { id: 'activity', icon: '🕒', label: t('dashboard.admin.sections.activity') },
   ];
 
   return (
@@ -167,8 +167,8 @@ const AdminDashboard = () => {
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
         {/* Logo/Header */}
         <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Gestion de la plateforme</p>
+          <h1 className="text-xl font-bold text-gray-900">{t('dashboard.admin.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('dashboard.admin.subtitle')}</p>
         </div>
 
         {/* Navigation Links */}
@@ -193,11 +193,11 @@ const AdminDashboard = () => {
         <div className="p-4 border-t border-gray-200 space-y-2">
           <Link to="/admin/users" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition">
             <span>👥</span>
-            <span>Utilisateurs</span>
+            <span>{t('dashboard.admin.quickLinks.users')}</span>
           </Link>
           <Link to="/admin/products" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition">
             <span>🛒</span>
-            <span>Produits</span>
+            <span>{t('dashboard.admin.quickLinks.products')}</span>
           </Link>
         </div>
       </div>

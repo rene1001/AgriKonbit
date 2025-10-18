@@ -6,6 +6,7 @@ import { api, endpoints } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import ImageWithFallback from '../components/common/ImageWithFallback';
+import YouTubeEmbed from '../components/common/YouTubeEmbed';
 import { parseImagesArray, resolveImageUrl } from '../utils/images';
 
 const ProjectDetail = () => {
@@ -86,6 +87,21 @@ const ProjectDetail = () => {
           <h1 className="text-2xl font-bold mb-2">{project.title}</h1>
           <div className="text-gray-600 mb-6">{project.location}</div>
           <p className="text-gray-700 leading-relaxed mb-6">{project.description}</p>
+
+          {/* Vidéo explicative */}
+          {project.video_url && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <span>🎥</span>
+                <span>{t('projectDetail.videoTitle', 'Vidéo explicative du projet')}</span>
+              </h3>
+              <YouTubeEmbed 
+                url={project.video_url} 
+                title={project.title}
+                className="shadow-lg"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="card">

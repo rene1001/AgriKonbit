@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api, endpoints } from '../../utils/api';
+import toast from 'react-hot-toast';
 import BackButton from '../../components/common/BackButton';
 import ImageWithFallback from '../../components/common/ImageWithFallback';
 import { parseImagesArray, resolveImageUrl } from '../../utils/images';
 
 const MyProducts = () => {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery(['farmer-products-page'], async () => {
     const res = await api.get(endpoints.products.farmerProducts, { params: { limit: 50 } });
     return res.data?.data || { products: [], pagination: {} };
@@ -23,9 +26,9 @@ const MyProducts = () => {
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6">
           {isLoading ? (
-            <div>Chargement…</div>
+            <div>{t('farmer.myProducts.loading')}</div>
           ) : products.length === 0 ? (
-            <div className="text-gray-500 text-center py-12">Aucun produit</div>
+            <div className="text-gray-500 text-center py-12">{t('farmer.myProducts.noProducts')}</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map((p) => (
@@ -50,7 +53,7 @@ const MyProducts = () => {
                   <p className="text-sm text-gray-600 line-clamp-2 mb-3">{p.description}</p>
                   <div className="flex gap-2">
                     <Link to={`/marketplace/${p.id}`} className="flex-1 px-3 py-2 bg-green-600 text-white text-sm text-center rounded">Voir</Link>
-                    <Link to={`/farmer/edit-product/${p.id}`} className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 text-sm text-center rounded">Modifier</Link>
+                    <Link to={`/farmer/edit-product/${p.id}`} className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 text-sm text-center rounded">{t('farmer.myProducts.edit')}</Link>
                   </div>
                 </div>
               ))}

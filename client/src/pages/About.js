@@ -1,49 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 
 const About = () => {
   const { t } = useTranslation();
-  const [videoData, setVideoData] = useState({ url: '', title: '' });
-  
-  useEffect(() => {
-    const fetchVideoSettings = async () => {
-      try {
-        const response = await axios.get('/api/settings/project_video_url');
-        if (response.data.success) {
-          setVideoData({
-            url: response.data.data.value || '',
-            title: response.data.data.title || t('about.videoTitle')
-          });
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement de la vidéo:', error);
-      }
-    };
-    
-    fetchVideoSettings();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Section: Vidéo explicative */}
-        {videoData.url && (
-          <section className="mb-12">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">{videoData.title}</h1>
-            <div className="aspect-w-16 aspect-h-9 rounded-xl overflow-hidden shadow-lg">
-              <iframe 
-                src={videoData.url}
-                title={videoData.title}
-                className="w-full h-96"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
-          </section>
-        )}
-        
         {/* Section: Pourquoi investir */}
         <section className="mb-12">
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">{t('about.whyInvest.title')}</h1>

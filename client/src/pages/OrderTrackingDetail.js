@@ -101,7 +101,7 @@ const OrderTrackingDetail = () => {
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement...</p>
+          <p className="mt-4 text-gray-600">{t('orderTrackingDetail.loading')}</p>
         </div>
       </div>
     );
@@ -111,12 +111,12 @@ const OrderTrackingDetail = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Commande non trouvée</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('orderTrackingDetail.notFound')}</h2>
           <button
             onClick={() => navigate('/dashboard')}
             className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
           >
-            Retour au tableau de bord
+            {t('orderTrackingDetail.backToDashboard')}
           </button>
         </div>
       </div>
@@ -136,10 +136,10 @@ const OrderTrackingDetail = () => {
             onClick={() => navigate('/dashboard')}
             className="text-emerald-600 hover:text-emerald-700 mb-4 flex items-center gap-2"
           >
-            ← Retour
+            {t('orderTrackingDetail.back')}
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Suivi de commande</h1>
-          <p className="text-gray-600 mt-2">Commande #{order.order_number}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('orderTrackingDetail.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('orderTrackingDetail.orderNumber')}{order.order_number}</p>
         </div>
 
         {/* Current Status */}
@@ -158,14 +158,14 @@ const OrderTrackingDetail = () => {
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold mb-1">Avez-vous reçu votre commande ?</h3>
-                <p className="text-gray-600">Confirmez la réception pour clôturer la commande</p>
+                <h3 className="text-lg font-semibold mb-1">{t('orderTrackingDetail.receivedQuestion')}</h3>
+                <p className="text-gray-600">{t('orderTrackingDetail.confirmReceipt')}</p>
               </div>
               <button
                 onClick={() => setShowConfirmModal(true)}
                 className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
               >
-                Confirmer la livraison
+                {t('orderTrackingDetail.confirmDelivery')}
               </button>
             </div>
           </div>
@@ -173,7 +173,7 @@ const OrderTrackingDetail = () => {
 
         {/* Order Items */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-4">Articles commandés</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('orderTrackingDetail.orderedItems')}</h3>
           <div className="space-y-4">
             {items.map((item) => (
               <div key={item.id} className="flex items-center gap-4 pb-4 border-b last:border-b-0">
@@ -186,15 +186,15 @@ const OrderTrackingDetail = () => {
                 )}
                 <div className="flex-1">
                   <h4 className="font-medium">{item.product_name}</h4>
-                  <p className="text-sm text-gray-600">Agriculteur: {item.farmer_name}</p>
-                  <p className="text-sm text-gray-600">Quantité: {item.quantity}</p>
+                  <p className="text-sm text-gray-600">{t('orderTrackingDetail.farmer')} {item.farmer_name}</p>
+                  <p className="text-sm text-gray-600">{t('orderTrackingDetail.quantity')} {item.quantity}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-emerald-600">
-                    {parseFloat(item.total_gyt).toLocaleString()} GYT
+                    {parseFloat(item.total_gyt).toLocaleString()} DOLLAR
                   </p>
                   <p className="text-sm text-gray-600">
-                    {parseFloat(item.price_gyt).toLocaleString()} GYT / unité
+                    {parseFloat(item.price_gyt).toLocaleString()} DOLLAR / unité
                   </p>
                 </div>
               </div>
@@ -205,7 +205,7 @@ const OrderTrackingDetail = () => {
             <div className="flex justify-between items-center text-lg font-bold">
               <span>Total</span>
               <span className="text-emerald-600">
-                {parseFloat(order.total_gyt).toLocaleString()} GYT
+                {parseFloat(order.total_gyt).toLocaleString()} DOLLAR
               </span>
             </div>
           </div>
@@ -213,7 +213,7 @@ const OrderTrackingDetail = () => {
 
         {/* Status Timeline */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-6">Historique de la commande</h3>
+          <h3 className="text-lg font-semibold mb-6">{t('orderTrackingDetail.orderHistory')}</h3>
           <div className="space-y-4">
             {statusHistory.map((history, index) => {
               const statusInfo = getStatusInfo(history.status);
@@ -254,7 +254,7 @@ const OrderTrackingDetail = () => {
 
         {/* Shipping Address */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold mb-4">Adresse de livraison</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('orderTrackingDetail.shippingAddress')}</h3>
           {order.shipping_address && (
             <div className="text-gray-700">
               {JSON.parse(order.shipping_address).street && (
@@ -278,10 +278,10 @@ const OrderTrackingDetail = () => {
         {showConfirmModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-              <h3 className="text-2xl font-bold mb-4">Confirmer la livraison</h3>
+              <h3 className="text-2xl font-bold mb-4">{t('orderTrackingDetail.confirmDelivery')}</h3>
 
               <p className="text-gray-600 mb-4">
-                Confirmez-vous avoir reçu votre commande en bon état ?
+                {t('orderTrackingDetail.confirmMessage')}
               </p>
 
               <div className="mb-6">

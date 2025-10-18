@@ -1,36 +1,87 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FiTrendingUp, FiShoppingBag, FiShield, FiGlobe, FiArrowRight, FiStar } from 'react-icons/fi';
 import { useQuery } from 'react-query';
 import axios from 'axios';
 import { api, endpoints } from '../utils/api';
-import ImageWithFallback from '../components/common/ImageWithFallback';
 import { resolveImageUrl, parseImagesArray } from '../utils/images';
+import toast from 'react-hot-toast';
+import { useCart } from '../contexts/CartContext';
+
+// Lazy load components pour améliorer les performances
+const ImageWithFallback = lazy(() => import('../components/common/ImageWithFallback'));
+
+// Composant de chargement pour Suspense
+const LoadingFallback = () => (
+  <div className="animate-pulse bg-gray-200 rounded-md h-full w-full min-h-[200px]"></div>
+);
 
 const Home = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { addItem } = useCart();
   const [videoData, setVideoData] = useState({ url: '', title: '' });
+  const [investingProject, setInvestingProject] = useState(null);
+  const [investAmount, setInvestAmount] = useState('');
+  const [showInvestModal, setShowInvestModal] = useState(false);
+
+  const handleInvestClick = (project) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Veuillez vous connecter pour investir');
+      navigate('/login');
+      return;
+    }
+    setInvestingProject(project);
+    setInvestAmount('');
+    setShowInvestModal(true);
+  };
+
+  const handleInvestSubmit = async () => {
+    if (!investAmount || parseFloat(investAmount) <= 0) {
+      toast.error('Montant invalide');
+      return;
+    }
+
+    try {
+      await api.post(endpoints.investments.create, {
+        projectId: investingProject.id,
+        amountGyt: parseFloat(investAmount),
+        returnType: 'financial'
+      });
+      toast.success('Investissement réussi!');
+      setShowInvestModal(false);
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'investissement');
+    }
+  };
   
   useEffect(() => {
+    // Utilisation d'un AbortController pour annuler les requêtes en cas de démontage du composant
+    const controller = new AbortController();
+    const signal = controller.signal;
+    
     const fetchVideoSettings = async () => {
       try {
         // Utiliser Promise.allSettled pour éviter qu'une erreur sur une requête n'arrête l'autre
         const [urlResponseResult, titleResponseResult] = await Promise.allSettled([
-          axios.get('/api/settings/project_video_url'),
-          axios.get('/api/settings/project_video_title')
+          axios.get('/api/settings/project_video_url', { signal }),
+          axios.get('/api/settings/project_video_title', { signal })
         ]);
+        
+        // Vérifier si le composant est toujours monté
+        if (signal.aborted) return;
         
         // Extraire les réponses réussies
         const urlResponse = urlResponseResult.status === 'fulfilled' ? urlResponseResult.value : null;
         const titleResponse = titleResponseResult.status === 'fulfilled' ? titleResponseResult.value : null;
         
         // Vérifier si les données sont disponibles
-        if (urlResponse && urlResponse.data && urlResponse.data.value) {
+        if (urlResponse?.data?.value) {
           const videoUrl = urlResponse.data.value;
-          const videoTitle = titleResponse && titleResponse.data && titleResponse.data.value 
-            ? titleResponse.data.value 
-            : 'Vidéo explicative du projet';
+          const videoTitle = titleResponse?.data?.value || 'Vidéo explicative du projet';
           
           setVideoData({
             url: videoUrl,
@@ -38,41 +89,54 @@ const Home = () => {
           });
         } else {
           // Aucune vidéo n'est définie ou erreur dans la récupération
-          setVideoData({
-            url: '',
-            title: ''
-          });
+          setVideoData({ url: '', title: '' });
         }
       } catch (error) {
-        console.error('Erreur lors du chargement de la vidéo:', error);
-        // En cas d'erreur, ne pas afficher de vidéo
-        setVideoData({
-          url: '',
-          title: ''
-        });
+        if (!signal.aborted) {
+          console.error('Erreur lors du chargement de la vidéo:', error);
+          setVideoData({ url: '', title: '' });
+        }
       }
     };
 
     fetchVideoSettings();
+    
+    // Nettoyage en cas de démontage du composant
+    return () => controller.abort();
   }, []);
   
-  // Featured data
+  // Featured data avec optimisation des requêtes
   const { data: featuredProjects, isLoading: loadingProjects, isError: errorProjects } = useQuery(
     ['home-featured-projects'],
     async () => {
-      const res = await api.get(endpoints.projects.list, { params: { status: 'validated', limit: 3 } });
+      const res = await api.get(endpoints.projects.list, { 
+        params: { status: 'validated', limit: 3 },
+        // Ajouter un cache-control pour optimiser les requêtes
+        headers: { 'Cache-Control': 'max-age=300' } 
+      });
       return res.data?.data?.projects || [];
     },
-    { retry: 1 }
+    { 
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes de fraîcheur des données
+      cacheTime: 10 * 60 * 1000 // 10 minutes de cache
+    }
   );
 
   const { data: featuredProducts, isLoading: loadingProductsList, isError: errorProductsList } = useQuery(
     ['home-featured-products'],
     async () => {
-      const res = await api.get(endpoints.products.list, { params: { limit: 4 } });
+      const res = await api.get(endpoints.products.list, { 
+        params: { limit: 4 },
+        headers: { 'Cache-Control': 'max-age=300' }
+      });
       return res.data?.data?.products || [];
     },
-    { retry: 1 }
+    { 
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 10 * 60 * 1000
+    }
   );
   return (
     <div className="">
@@ -82,17 +146,17 @@ const Home = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
               <div className="text-white">
-                <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-shadow-lg">
+                <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-shadow-lg" aria-label={t('home.heroTitle')}>
                   {t('home.heroTitle')}
                 </h1>
                 <p className="text-lg text-white/90 mb-8 text-shadow-lg">
                   {t('home.heroSubtitle')}
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  <Link to="/projects" className="btn btn-lg bg-white text-primary-700 hover:bg-gray-100">
+                  <Link to="/projects" className="btn btn-lg bg-white text-primary-700 hover:bg-gray-100 focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" aria-label={t('home.exploreProjects')}>
                     {t('home.exploreProjects')}
                   </Link>
-                  <Link to="/marketplace" className="btn btn-lg bg-black/60 text-white hover:bg-black/70 border border-black/40">
+                  <Link to="/marketplace" className="btn btn-lg bg-black/60 text-white hover:bg-black/70 border border-black/40 focus:ring-2 focus:ring-offset-2 focus:ring-white" aria-label={t('home.shopMarketplace')}>
                     {t('home.shopMarketplace')}
                   </Link>
                 </div>
@@ -202,7 +266,7 @@ const Home = () => {
                   <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
                   </svg>
-                  <span className="text-sm font-medium text-gray-700">Regardez notre histoire</span>
+                  <span className="text-sm font-medium text-gray-700">{t('home.watchOurStory')}</span>
                 </div>
 
                 {/* Title */}
@@ -225,7 +289,7 @@ const Home = () => {
                     </div>
                     <div>
                       <div className="font-semibold text-gray-900">100% Transparent</div>
-                      <div className="text-sm text-gray-500">Blockchain vérifié</div>
+                      <div className="text-sm text-gray-500">{t('home.blockchainVerified')}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -236,7 +300,7 @@ const Home = () => {
                     </div>
                     <div>
                       <div className="font-semibold text-gray-900">100% Sécurisé</div>
-                      <div className="text-sm text-gray-500">Paiements protégés</div>
+                      <div className="text-sm text-gray-500">{t('home.securePayments')}</div>
                     </div>
                   </div>
                 </div>
@@ -303,7 +367,20 @@ const Home = () => {
                       <div>{t('home.project.estimatedReturn', { percent: p.estimated_return_pct })}</div>
                       <div>{t('home.project.duration', { days: p.duration_days })}</div>
                     </div>
-                    <Link to={`/projects/${p.id}`} className="btn btn-primary mt-4">{t('home.project.details')}</Link>
+                    <div className="mt-4 flex gap-2">
+                      <Link 
+                        to={`/projects/${p.id}`} 
+                        className="flex-1 px-4 py-2 bg-gray-600 text-white text-center rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+                      >
+                        {t('home.project.details', 'Détails')}
+                      </Link>
+                      <button
+                        onClick={() => handleInvestClick(p)}
+                        className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+                      >
+                        💰 Investir
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -339,8 +416,24 @@ const Home = () => {
                       />
                     </div>
                     <h3 className="font-semibold">{p.name}</h3>
-                    <div className="text-gray-700 mt-1">${Number(p.price_usd).toFixed(2)}</div>
-                    <Link to={`/marketplace/${p.id}`} className="btn btn-outline mt-3">{t('home.product.view')}</Link>
+                    <div className="text-gray-700 mt-1">{Number(p.price_usd).toFixed(2)} DOLLAR</div>
+                    <div className="mt-3 flex gap-2">
+                      <Link 
+                        to={`/marketplace/${p.id}`} 
+                        className="flex-1 px-3 py-2 bg-gray-600 text-white text-center rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+                      >
+                        Voir
+                      </Link>
+                      <button
+                        onClick={() => {
+                          addItem(p, 1);
+                          toast.success(`${p.name} ajouté au panier!`);
+                        }}
+                        className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+                      >
+                        🛒 Panier
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -427,6 +520,81 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Modal d'investissement */}
+      {showInvestModal && investingProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              {t('projectsPage.investModal.title', { title: investingProject.title })}
+            </h2>
+            
+            <div className="mb-4 p-4 bg-emerald-50 rounded-lg">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-600">{t('projectsPage.investModal.budgetRequired')}</span>
+                <span className="font-semibold">{investingProject.budget_gyt} DOLLAR</span>
+              </div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-600">{t('projectsPage.investModal.alreadyFunded')}</span>
+                <span className="font-semibold text-emerald-600">{investingProject.funded_amount_gyt} DOLLAR</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">{t('projectsPage.investModal.estimatedReturn')}</span>
+                <span className="font-semibold text-blue-600">{investingProject.estimated_return_pct}%</span>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('projectsPage.investModal.amountLabel')}
+              </label>
+              <input
+                type="number"
+                min="10"
+                step="0.01"
+                value={investAmount}
+                onChange={(e) => setInvestAmount(e.target.value)}
+                placeholder={t('projectsPage.investModal.placeholder')}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                {t('projectsPage.investModal.minimum')}
+              </p>
+            </div>
+
+            {investAmount && parseFloat(investAmount) > 0 && (
+              <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-600">{t('projectsPage.investModal.yourInvestment')}</span>
+                  <span className="font-bold">{parseFloat(investAmount).toLocaleString()} DOLLAR</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">{t('projectsPage.investModal.estimatedReturnCalc', { percent: investingProject.estimated_return_pct })}</span>
+                  <span className="font-bold text-emerald-600">
+                    {(parseFloat(investAmount) * (1 + investingProject.estimated_return_pct / 100)).toLocaleString()} DOLLAR
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowInvestModal(false)}
+                className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleInvestSubmit}
+                disabled={!investAmount || parseFloat(investAmount) < 10}
+                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

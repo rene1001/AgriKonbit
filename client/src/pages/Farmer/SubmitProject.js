@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api, endpoints } from '../../utils/api';
 import toast from 'react-hot-toast';
 import ImageUploader from '../../components/common/ImageUploader';
 
 const SubmitProject = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     title: '',
@@ -16,7 +18,8 @@ const SubmitProject = () => {
     category: 'crops',
     latitude: '',
     longitude: '',
-    images: []
+    images: [],
+    videoUrl: ''
   });
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
@@ -63,6 +66,7 @@ const SubmitProject = () => {
         latitude: form.latitude || null,
         longitude: form.longitude || null,
         images: form.images || [],
+        videoUrl: form.videoUrl || null,
         documents: []
       };
       const res = await api.post(endpoints.projects.create, payload);
@@ -80,32 +84,32 @@ const SubmitProject = () => {
   return (
     <div className="py-10 bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold mb-6">Soumettre un projet</h1>
+        <h1 className="text-2xl font-bold mb-6">{t('farmer.submitProject.title')}</h1>
         <div className="card space-y-4">
           <div>
-            <label className="label">Titre</label>
+            <label className="label">{t('farmer.submitProject.titleLabel')}</label>
             <input className="input" value={form.title} onChange={(e)=>onChange('title', e.target.value)} />
           </div>
           <div>
-            <label className="label">Description</label>
+            <label className="label">{t('farmer.submitProject.description')}</label>
             <textarea className="input" rows={5} value={form.description} onChange={(e)=>onChange('description', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="label">Budget (USD)</label>
+              <label className="label">{t('farmer.submitProject.budget')}</label>
               <input type="number" className="input" value={form.budgetUsd} onChange={(e)=>onChange('budgetUsd', e.target.value)} />
             </div>
             <div>
-              <label className="label">Durée (jours)</label>
+              <label className="label">{t('farmer.submitProject.duration')}</label>
               <input type="number" className="input" value={form.durationDays} onChange={(e)=>onChange('durationDays', e.target.value)} />
             </div>
             <div>
-              <label className="label">Rendement (%)</label>
+              <label className="label">{t('farmer.submitProject.returnRate')}</label>
               <input type="number" className="input" value={form.estimatedReturnPct} onChange={(e)=>onChange('estimatedReturnPct', e.target.value)} />
             </div>
           </div>
           <div>
-            <label className="label">Localisation</label>
+            <label className="label">{t('farmer.submitProject.location')}</label>
             <input className="input" value={form.location} onChange={(e)=>onChange('location', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -120,17 +124,17 @@ const SubmitProject = () => {
               </select>
             </div>
             <div>
-              <label className="label">Latitude</label>
+              <label className="label">{t('farmer.submitProject.latitude')}</label>
               <input className="input" value={form.latitude} onChange={(e)=>onChange('latitude', e.target.value)} />
             </div>
             <div>
-              <label className="label">Longitude</label>
+              <label className="label">{t('farmer.submitProject.longitude')}</label>
               <input className="input" value={form.longitude} onChange={(e)=>onChange('longitude', e.target.value)} />
             </div>
           </div>
           {/* Images */}
           <div className="space-y-2">
-            <label className="label">Images (URL)</label>
+            <label className="label">{t('farmer.submitProject.images')}</label>
             <div className="flex gap-2 items-center">
               <input
                 className="flex-1 input"
@@ -171,6 +175,38 @@ const SubmitProject = () => {
               </div>
             )}
           </div>
+
+          {/* Vidéo explicative */}
+          <div className="space-y-2">
+            <label className="label">
+              🎥 Vidéo explicative (optionnel)
+            </label>
+            <input
+              className="input"
+              placeholder="https://www.youtube.com/watch?v=... ou https://youtu.be/..."
+              value={form.videoUrl}
+              onChange={(e) => onChange('videoUrl', e.target.value)}
+            />
+            <p className="text-xs text-gray-500">
+              Ajoutez une vidéo YouTube pour expliquer votre projet. Collez simplement l'URL de la vidéo.
+            </p>
+            {form.videoUrl && (
+              <div className="mt-3 p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800 mb-2">
+                  ✅ Vidéo ajoutée! Les investisseurs pourront la voir sur la page du projet.
+                </p>
+                <a 
+                  href={form.videoUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Prévisualiser la vidéo ↗️
+                </a>
+              </div>
+            )}
+          </div>
+
           <button className="btn btn-primary" onClick={submit} disabled={loading} title="Soumettre le projet">{loading ? 'Envoi…' : 'Soumettre'}</button>
         </div>
       </div>

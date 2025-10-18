@@ -37,6 +37,11 @@ const OrderTrackingDetail = lazy(() => import('./pages/OrderTrackingDetail'));
 const SubmitProject = lazy(() => import('./pages/Farmer/SubmitProject'));
 const MyProjects = lazy(() => import('./pages/Farmer/MyProjects'));
 const ProjectManagement = lazy(() => import('./pages/Farmer/ProjectManagement'));
+const AddProduct = lazy(() => import('./pages/Farmer/AddProduct'));
+const EditProduct = lazy(() => import('./pages/Farmer/EditProduct'));
+const MyProducts = lazy(() => import('./pages/Farmer/MyProducts'));
+const EditProject = lazy(() => import('./pages/Farmer/EditProject'));
+const ProjectUpdates = lazy(() => import('./pages/Farmer/ProjectUpdates'));
 const ProjectsMap = lazy(() => import('./pages/ProjectsMap'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -72,6 +77,11 @@ function App() {
               <Route path="/farmer/submit-project" element={<SubmitProject />} />
               <Route path="/farmer/my-projects" element={<MyProjects />} />
               <Route path="/farmer/projects/:id/manage" element={<ProjectManagement />} />
+              <Route path="/farmer/projects/:id/edit" element={<EditProject />} />
+              <Route path="/farmer/project-updates/:id" element={<ProjectUpdates />} />
+              <Route path="/farmer/add-product" element={<AddProduct />} />
+              <Route path="/farmer/my-products" element={<MyProducts />} />
+              <Route path="/farmer/products/:id/edit" element={<EditProduct />} />
 
               {/* Admin routes - Protected with AdminGuard + Lazy loaded */}
               <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />

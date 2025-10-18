@@ -1,8 +1,7 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { useQuery } from 'react-query';
-import { Link } from 'react-router-dom';
-import { api } from '../../utils/api';
+import { useTranslation } from 'react-i18next';
+import { api, endpoints } from '../../utils/api';
 
 const InvestmentReturnsSection = () => {
   const { t } = useTranslation();
@@ -68,7 +67,7 @@ const InvestmentReturnsSection = () => {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement...</p>
+          <p className="mt-4 text-gray-600">{t('dashboardComponents.investmentReturns.loading')}</p>
         </div>
       </div>
     );
@@ -79,13 +78,13 @@ const InvestmentReturnsSection = () => {
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white">
-          <p className="text-sm opacity-90 mb-2">Total Investi</p>
-          <p className="text-3xl font-bold">{stats.totalInvested.toLocaleString()} GYT</p>
+          <p className="text-sm opacity-90 mb-2">{t('dashboardComponents.investmentReturns.totalInvested')}</p>
+          <p className="text-3xl font-bold">{stats.totalInvested.toLocaleString()} DOLLAR</p>
         </div>
 
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-sm p-6 text-white">
-          <p className="text-sm opacity-90 mb-2">Retours Reçus</p>
-          <p className="text-3xl font-bold">{stats.totalReturns.toLocaleString()} GYT</p>
+          <p className="text-sm opacity-90 mb-2">{t('dashboardComponents.investmentReturns.returnsReceived')}</p>
+          <p className="text-3xl font-bold">{stats.totalReturns.toLocaleString()} DOLLAR</p>
         </div>
 
         <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-sm p-6 text-white">
@@ -94,7 +93,7 @@ const InvestmentReturnsSection = () => {
         </div>
 
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-sm p-6 text-white">
-          <p className="text-sm opacity-90 mb-2">Distribués</p>
+          <p className="text-sm opacity-90 mb-2">{t('dashboardComponents.investmentReturns.distributed')}</p>
           <p className="text-3xl font-bold">{stats.distributedReturns}</p>
         </div>
       </div>
@@ -138,14 +137,14 @@ const InvestmentReturnsSection = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Montant Investi</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('dashboardComponents.investmentReturns.amountInvested')}</p>
                     <p className="text-lg font-bold text-blue-600">
-                      {parseFloat(investment.amount_gyt).toLocaleString()} GYT
+                      <p className="font-semibold text-emerald-600">{parseFloat(investment.amount_gyt).toLocaleString()} DOLLAR</p>
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Rendement Estimé</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('dashboardComponents.investmentReturns.estimatedReturn')}</p>
                     <p className="text-lg font-bold text-gray-900">
                       {investment.estimated_return_pct}%
                     </p>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api, endpoints } from '../utils/api';
 import toast from 'react-hot-toast';
 
@@ -29,6 +30,7 @@ const loadLeafletAssets = () => {
 };
 
 const ProjectsMap = () => {
+  const { t } = useTranslation();
   const mapRef = useRef(null);
   const [projects, setProjects] = useState([]);
 
@@ -39,7 +41,7 @@ const ProjectsMap = () => {
         const list = res.data?.data?.projects || res.data?.data || res.data || [];
         setProjects(Array.isArray(list) ? list : []);
       } catch (e) {
-        toast.error("Impossible de charger les projets");
+        toast.error(t('projectsMap.loadError'));
       }
     })();
   }, []);
@@ -82,8 +84,8 @@ const ProjectsMap = () => {
     <div className="py-10 bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Carte des Projets</h1>
-          <a href="/projects" className="text-green-600 hover:underline" title="Voir la liste">Voir la liste</a>
+          <h1 className="text-2xl font-bold">{t('projectsMap.title')}</h1>
+          <a href="/projects" className="text-green-600 hover:underline" title={t('projectsMap.viewList')}>{t('projectsMap.viewList')}</a>
         </div>
         <div ref={mapRef} style={{ height: '70vh' }} className="rounded-lg shadow border bg-white" />
       </div>

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from 'react-query';
+import { useTranslation } from 'react-i18next';
 import { api, endpoints } from '../../utils/api';
 
 const MarketplaceSection = ({ stats, myProducts }) => {
+  const { t } = useTranslation();
   const [orderFilter, setOrderFilter] = useState('all');
 
   const { data: ordersData } = useQuery(['farmer-orders', orderFilter], async () => {
@@ -29,15 +31,15 @@ const MarketplaceSection = ({ stats, myProducts }) => {
         {/* Products Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-green-50 rounded-lg p-4">
-            <p className="text-sm text-green-600 font-medium">Actifs</p>
+            <p className="text-sm text-green-600 font-medium">{t('dashboardComponents.marketplace.active')}</p>
             <p className="text-2xl font-bold text-green-900">{stats?.products?.active_products || 0}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 font-medium">Inactifs</p>
+            <p className="text-sm text-gray-600 font-medium">{t('dashboardComponents.marketplace.inactive')}</p>
             <p className="text-2xl font-bold text-gray-900">{stats?.products?.inactive_products || 0}</p>
           </div>
           <div className="bg-blue-50 rounded-lg p-4">
-            <p className="text-sm text-blue-600 font-medium">Stock Total</p>
+            <p className="text-sm text-blue-600 font-medium">{t('dashboardComponents.marketplace.totalStock')}</p>
             <p className="text-2xl font-bold text-blue-900">{stats?.products?.total_stock || 0}</p>
           </div>
         </div>
@@ -63,11 +65,11 @@ const MarketplaceSection = ({ stats, myProducts }) => {
                   <p className="text-sm font-bold text-green-600">${product.price_usd}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Stock</p>
+                  <p className="text-xs text-gray-500">{t('dashboardComponents.marketplace.stock')}</p>
                   <p className="text-sm font-bold text-gray-900">{product.stock}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Catégorie</p>
+                  <p className="text-xs text-gray-500">{t('dashboardComponents.marketplace.category')}</p>
                   <p className="text-sm text-gray-700">{product.category}</p>
                 </div>
                 <div>
@@ -95,7 +97,7 @@ const MarketplaceSection = ({ stats, myProducts }) => {
 
           {(!myProducts || myProducts.length === 0) && (
             <div className="col-span-3 text-center py-12">
-              <p className="text-gray-500 text-lg mb-4">Aucun produit pour le moment</p>
+              <p className="text-gray-500 text-lg mb-4">{t('dashboardComponents.marketplace.noProducts')}</p>
               <Link to="/farmer/add-product" className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                 Ajouter votre premier produit
               </Link>
@@ -117,15 +119,15 @@ const MarketplaceSection = ({ stats, myProducts }) => {
             <p className="text-2xl font-bold text-yellow-900">{stats?.orders?.pending_orders || 0}</p>
           </div>
           <div className="bg-blue-50 rounded-lg p-4">
-            <p className="text-sm text-blue-600 font-medium">Payées</p>
+            <p className="text-sm text-blue-600 font-medium">{t('dashboardComponents.marketplace.paid')}</p>
             <p className="text-2xl font-bold text-blue-900">{stats?.orders?.paid_orders || 0}</p>
           </div>
           <div className="bg-purple-50 rounded-lg p-4">
-            <p className="text-sm text-purple-600 font-medium">Expédiées</p>
+            <p className="text-sm text-purple-600 font-medium">{t('dashboardComponents.marketplace.shipped')}</p>
             <p className="text-2xl font-bold text-purple-900">{stats?.orders?.shipped_orders || 0}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-4">
-            <p className="text-sm text-green-600 font-medium">Livrées</p>
+            <p className="text-sm text-green-600 font-medium">{t('dashboardComponents.marketplace.delivered')}</p>
             <p className="text-2xl font-bold text-green-900">{stats?.orders?.delivered_orders || 0}</p>
           </div>
         </div>
@@ -195,16 +197,16 @@ const MarketplaceSection = ({ stats, myProducts }) => {
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                     <div>
-                      <p className="text-xs text-gray-500">Client</p>
+                      <p className="text-xs text-gray-500">{t('dashboardComponents.marketplace.customer')}</p>
                       <p className="text-gray-900">{order.customer_name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Articles</p>
+                      <p className="text-xs text-gray-500">{t('dashboardComponents.marketplace.items')}</p>
                       <p className="text-gray-900">{order.item_count} produit(s)</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Total</p>
-                      <p className="text-gray-900 font-semibold">{order.total_gyt} GYT</p>
+                      <p className="text-xs text-gray-500">{t('dashboardComponents.marketplace.total')}</p>
+                      <p className="text-gray-900 font-semibold">{order.total_gyt} DOLLAR</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Date</p>

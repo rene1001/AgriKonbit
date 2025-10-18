@@ -88,7 +88,7 @@ const ManageOrder = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">{t('orders.fields.total', 'Total')}</p>
-                  <p className="font-semibold">{Number(order.total_gyt || 0).toFixed(2)} GYT (${Number(order.total_usd || 0).toFixed(2)})</p>
+                  <p className="font-semibold">{Number(order.total_gyt || 0).toFixed(2)} DOLLAR (${Number(order.total_usd || 0).toFixed(2)})</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">{t('orders.fields.orderDate', 'Date de commande')}</p>
@@ -138,7 +138,7 @@ const ManageOrder = () => {
                       <p className="text-sm text-gray-600">{t('orders.items.qty', 'Quantité')}: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{Number(item.total_gyt || 0).toFixed(2)} GYT</p>
+                      <p className="font-semibold">{Number(item.total_gyt || 0).toFixed(2)} DOLLAR</p>
                       <p className="text-sm text-gray-600">${Number(item.total_usd || 0).toFixed(2)}</p>
                     </div>
                   </div>

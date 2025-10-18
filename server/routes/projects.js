@@ -39,6 +39,7 @@ router.get('/', async (req, res) => {
         p.start_date,
         p.end_date,
         CAST(p.images AS CHAR) as images,
+        p.video_url,
         p.created_at,
         u.full_name as farmer_name,
         u.country as farmer_country,
@@ -111,6 +112,7 @@ router.get('/:id', async (req, res) => {
         p.start_date,
         p.end_date,
         CAST(p.images AS CHAR) as images,
+        p.video_url,
         CAST(p.documents AS CHAR) as documents,
         p.admin_notes,
         p.created_at,
@@ -212,6 +214,7 @@ router.post('/', authenticateToken, requireFarmer, [
       longitude,
       category,
       images,
+      videoUrl,
       documents
     } = req.body;
 
@@ -222,12 +225,12 @@ router.post('/', authenticateToken, requireFarmer, [
       INSERT INTO projects (
         farmer_id, title, description, budget_usd, budget_gyt,
         duration_days, estimated_return_pct, location, latitude, longitude,
-        category, images, documents
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        category, images, video_url, documents
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       req.user.id, title, description, budgetUsd, budgetGyt,
       durationDays, estimatedReturnPct, location, latitude || null, longitude || null,
-      category, JSON.stringify(images || []), JSON.stringify(documents || [])
+      category, JSON.stringify(images || []), videoUrl || null, JSON.stringify(documents || [])
     ]);
 
     res.status(201).json({
